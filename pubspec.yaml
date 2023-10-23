@@ -1,0 +1,36 @@
+name: niimbot_print
+description: Niimbot Printer Integration
+version: 0.0.1
+homepage:
+
+environment:
+  sdk: '>=3.1.3 <4.0.0'
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.0.2
+  permission_handler: ^11.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+
+  plugin:
+    platforms:
+      android:
+        package: com.zh4dev.niimbot_print
+        pluginClass: NiimbotPrintPlugin
+      ios:
+        pluginClass: NiimbotPrintPlugin
+      linux:
+        pluginClass: NiimbotPrintPlugin
+      macos:
+        pluginClass: NiimbotPrintPlugin
+      windows:
+        pluginClass: NiimbotPrintPluginCApi
+
