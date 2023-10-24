@@ -107,7 +107,7 @@ public class PrintUtility {
         api.close();
     }
 
-    public int isConnection() {
+    public int connectionStatus() {
         getInstance();
         return api.isConnection();
     }
@@ -166,7 +166,7 @@ public class PrintUtility {
     }
 
     public void printLabel(List<PrintLabelModel> printLabelModels, @NonNull MethodChannel.Result result) {
-        if (isConnection() != 0) {
+        if (connectionStatus() != 0) {
             result.error(KeyConstant.errorPrint, MessageConstant.printerNotConnected, false);
             return;
         }

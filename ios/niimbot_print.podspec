@@ -1,13 +1,13 @@
 #
 # To learn more about a Podspec see http://guides.cocoapods.org/syntax/podspec.html.
-# Run `pod lib lint niimbot_print.podspec` to validate before publishing.
+# Run pod lib lint niimbot_print.podspec to validate before publishing.
 #
 Pod::Spec.new do |s|
   s.name             = 'niimbot_print'
   s.version          = '0.0.1'
   s.summary          = 'Niimbot Printer Integration'
   s.description      = <<-DESC
-Niimbot Printer Integration
+A new flutter plugin project.
                        DESC
   s.homepage         = 'http://example.com'
   s.license          = { :file => '../LICENSE' }
@@ -15,9 +15,15 @@ Niimbot Printer Integration
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
+  s.static_framework = true
   s.dependency 'Flutter'
   s.platform = :ios, '11.0'
 
-  # Flutter.framework does not contain a i386 slice.
-  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
+  # Imported Libraries
+  s.frameworks = 'CoreMedia', 'AVFoundation'
+  s.resources = 'Libraries/Source/**/*', 'Libraries/JCSDKFont.bundle'
+  s.vendored_libraries = 'Libraries/JCAPI/libJCAPI.a'
+
+  # Flutter.framework does not contain a i386 slice. Only x86_64 simulators are supported.
+  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'VALID_ARCHS[sdk=iphonesimulator*]' => 'x86_64' }
 end

@@ -82,7 +82,7 @@ public class PrintHelper {
     };
 
     public void onDisconnect(@NonNull Result result) {
-        if (printUtility.isConnection() != 0) {
+        if (printUtility.connectionStatus() != 0) {
             result.error(KeyConstant.errorPrint, MessageConstant.printerNotConnected, false);
         } else {
             try {
@@ -114,6 +114,7 @@ public class PrintHelper {
             mContext.unregisterReceiver(mReceiver);
             result.success(blueDeviceList);
         }), scanDuration);
+
     }
 
     public void onStartConnect(@NonNull MethodCall call, @NonNull Result result) {

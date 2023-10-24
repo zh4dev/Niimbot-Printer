@@ -1,0 +1,571 @@
+
+    0:{
+        0:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         1:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         2:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         3:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         4:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         5:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         6:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+    },
+    1:{
+        0:"printerImageProcessingInfo": {
+            "name":"B3S",
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         1:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         2:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         3:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         4:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         5:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         6:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+    },
+    2:{
+        0:"printerImageProcessingInfo": {
+            "name":"D11",
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         1:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         2:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         3:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         4:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         5:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         6:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+    },
+    3:{
+        0:"printerImageProcessingInfo": {
+            "name":"B21",
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         1:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         2:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         3:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         4:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         5:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         6:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+    },
+    4:{
+        0:"printerImageProcessingInfo": {
+            "name":"P1S",
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         1:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         2:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         3:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         4:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         5:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         6:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+    },
+    5:{
+        0:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         1:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         2:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         3:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         4:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         5:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         6:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+    },
+    6:{
+        0:"printerImageProcessingInfo": {
+            "name":"D11",
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         1:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         2:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         3:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         4:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         5:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         6:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+    },
+    7:{
+        0:"printerImageProcessingInfo": {
+            "name":"B16",
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         1:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         2:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         3:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         4:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         5:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         6:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+    },
+    8:{
+        0:"printerImageProcessingInfo": {
+            "name":"B32",
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         1:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         2:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         3:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         4:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         5:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         6:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+    },
+    9:{
+        0:"printerImageProcessingInfo": {
+            "name":"D110",
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         1:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         2:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         3:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         4:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         5:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         6:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+    },
+    10:{
+        0:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         1:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         2:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         3:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         4:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         5:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+         6:"printerImageProcessingInfo": {
+            "margin": [0, 0, 0, 0],
+            "imageCrop": [0, 0, 0, 0],
+            "printMultiple":8,
+            "horizontalOffset": 0,
+            "verticalOffset": 0
+          },
+    }
+}
