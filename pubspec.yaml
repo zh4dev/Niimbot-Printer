@@ -12,11 +12,12 @@ dependencies:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
   permission_handler: ^11.0.1
+  bluetooth_enable_fork: ^0.1.6
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^3.0.0
 
 flutter:
 

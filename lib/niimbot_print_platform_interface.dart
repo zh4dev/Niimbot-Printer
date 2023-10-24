@@ -19,7 +19,8 @@ abstract class NiimbotPrintPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<List<BlueDeviceInfoModel>> onStartScan({Duration? scanDuration}) async {
+  Future<List<BlueDeviceInfoModel>> onStartScan(
+      {Duration? scanDuration, Function(String)? onError}) async {
     throw UnimplementedError(MessageConstant.errorPlatformNotImplemented);
   }
 
@@ -31,7 +32,7 @@ abstract class NiimbotPrintPlatform extends PlatformInterface {
 
   Future<void> onStartPrintText(
       {required List<PrintLabelModel> printLabelModelList,
-        required Function(bool isSuccess, String message) onResult}) async {
+      required Function(bool isSuccess, String message) onResult}) async {
     throw UnimplementedError(MessageConstant.errorPlatformNotImplemented);
   }
 
