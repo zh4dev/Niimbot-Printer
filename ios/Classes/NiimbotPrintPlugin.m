@@ -12,15 +12,15 @@
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-    PrintHelper *printHelper = [[PrintHelper alloc] init];
+  PrintHelper *printHelper = [[PrintHelper alloc] init];
   if ([onStartScan isEqualToString:call.method]) {
-      [printHelper onStartScan:call result:result];
+    [printHelper onStartScan:call result:result];
   } else if ([onStartConnect isEqualToString:call.method]) {
-      [printHelper onStartConnect:call result:result];
+    [printHelper onStartConnect:call result:result];
   } else if ([onStartPrintText isEqualToString:call.method]) {
-      [printHelper onStartPrintText:call result:result;
+    [printHelper onStartPrintText:call result:result;
   } else if ([onDisconnect isEqualToString:call.method]) {
-      [printHelper onDisconnect:result];
+    [printHelper onDisconnect:result];
   } else {
     result(FlutterMethodNotImplemented);
   }
