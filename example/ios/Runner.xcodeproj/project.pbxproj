@@ -11,16 +11,6 @@
 		331C80F4294D02FB00263BE5 /* RunnerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 331C80F3294D02FB00263BE5 /* RunnerTests.m */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		876321A5437BB56C77B08A66 /* libPods-RunnerTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B485BCF97B9BE31426A23A8 /* libPods-RunnerTests.a */; };
-		87C0F7D12AE7A91A00D41ADD /* KeyConstant.m in Sources */ = {isa = PBXBuildFile; fileRef = 87C0F7BC2AE7A91A00D41ADD /* KeyConstant.m */; };
-		87C0F7D22AE7A91A00D41ADD /* PluginConstant.m in Sources */ = {isa = PBXBuildFile; fileRef = 87C0F7BD2AE7A91A00D41ADD /* PluginConstant.m */; };
-		87C0F7D32AE7A91A00D41ADD /* LocalDataHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 87C0F7C02AE7A91A00D41ADD /* LocalDataHelper.m */; };
-		87C0F7D42AE7A91A00D41ADD /* BlueDeviceInfoModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 87C0F7C12AE7A91A00D41ADD /* BlueDeviceInfoModel.m */; };
-		87C0F7D52AE7A91A00D41ADD /* PrintHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 87C0F7C22AE7A91A00D41ADD /* PrintHelper.m */; };
-		87C0F7D62AE7A91A00D41ADD /* PrintLabelModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 87C0F7C32AE7A91A00D41ADD /* PrintLabelModel.m */; };
-		87C0F7D72AE7A91A00D41ADD /* PrintUtility.m in Sources */ = {isa = PBXBuildFile; fileRef = 87C0F7C52AE7A91A00D41ADD /* PrintUtility.m */; };
-		87C0F7D82AE7A91A00D41ADD /* PrinterConfigurationModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 87C0F7C62AE7A91A00D41ADD /* PrinterConfigurationModel.m */; };
-		87C0F7D92AE7A91A00D41ADD /* LocalDataConstant.m in Sources */ = {isa = PBXBuildFile; fileRef = 87C0F7CA2AE7A91A00D41ADD /* LocalDataConstant.m */; };
-		87C0F7DA2AE7A91A00D41ADD /* NiimbotPrintPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 87C0F7CD2AE7A91A00D41ADD /* NiimbotPrintPlugin.m */; };
 		978B8F6F1D3862AE00F588F7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 7AFFD8EE1D35381100E5BB4D /* AppDelegate.m */; };
 		97C146F31CF9000F007C117D /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 97C146F21CF9000F007C117D /* main.m */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
@@ -65,28 +55,6 @@
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		7AFFD8ED1D35381100E5BB4D /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		7AFFD8EE1D35381100E5BB4D /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		87C0F7BB2AE7A91A00D41ADD /* PrintLabelModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PrintLabelModel.h; path = ../../../ios/Classes/PrintLabelModel.h; sourceTree = "<group>"; };
-		87C0F7BC2AE7A91A00D41ADD /* KeyConstant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = KeyConstant.m; path = ../../../ios/Classes/KeyConstant.m; sourceTree = "<group>"; };
-		87C0F7BD2AE7A91A00D41ADD /* PluginConstant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PluginConstant.m; path = ../../../ios/Classes/PluginConstant.m; sourceTree = "<group>"; };
-		87C0F7BE2AE7A91A00D41ADD /* PrinterConfigurationModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PrinterConfigurationModel.h; path = ../../../ios/Classes/PrinterConfigurationModel.h; sourceTree = "<group>"; };
-		87C0F7BF2AE7A91A00D41ADD /* PrintHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PrintHelper.h; path = ../../../ios/Classes/PrintHelper.h; sourceTree = "<group>"; };
-		87C0F7C02AE7A91A00D41ADD /* LocalDataHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LocalDataHelper.m; path = ../../../ios/Classes/LocalDataHelper.m; sourceTree = "<group>"; };
-		87C0F7C12AE7A91A00D41ADD /* BlueDeviceInfoModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = BlueDeviceInfoModel.m; path = ../../../ios/Classes/BlueDeviceInfoModel.m; sourceTree = "<group>"; };
-		87C0F7C22AE7A91A00D41ADD /* PrintHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PrintHelper.m; path = ../../../ios/Classes/PrintHelper.m; sourceTree = "<group>"; };
-		87C0F7C32AE7A91A00D41ADD /* PrintLabelModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PrintLabelModel.m; path = ../../../ios/Classes/PrintLabelModel.m; sourceTree = "<group>"; };
-		87C0F7C42AE7A91A00D41ADD /* BlueDeviceInfoModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BlueDeviceInfoModel.h; path = ../../../ios/Classes/BlueDeviceInfoModel.h; sourceTree = "<group>"; };
-		87C0F7C52AE7A91A00D41ADD /* PrintUtility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PrintUtility.m; path = ../../../ios/Classes/PrintUtility.m; sourceTree = "<group>"; };
-		87C0F7C62AE7A91A00D41ADD /* PrinterConfigurationModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PrinterConfigurationModel.m; path = ../../../ios/Classes/PrinterConfigurationModel.m; sourceTree = "<group>"; };
-		87C0F7C72AE7A91A00D41ADD /* NiimbotPrintPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NiimbotPrintPlugin.h; path = ../../../ios/Classes/NiimbotPrintPlugin.h; sourceTree = "<group>"; };
-		87C0F7C82AE7A91A00D41ADD /* JCAPI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JCAPI.h; path = ../../../ios/Classes/JCAPI.h; sourceTree = "<group>"; };
-		87C0F7C92AE7A91A00D41ADD /* LocalDataHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LocalDataHelper.h; path = ../../../ios/Classes/LocalDataHelper.h; sourceTree = "<group>"; };
-		87C0F7CA2AE7A91A00D41ADD /* LocalDataConstant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LocalDataConstant.m; path = ../../../ios/Classes/LocalDataConstant.m; sourceTree = "<group>"; };
-		87C0F7CB2AE7A91A00D41ADD /* PluginConstant.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PluginConstant.h; path = ../../../ios/Classes/PluginConstant.h; sourceTree = "<group>"; };
-		87C0F7CC2AE7A91A00D41ADD /* PrintConstant.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PrintConstant.h; path = ../../../ios/Classes/PrintConstant.h; sourceTree = "<group>"; };
-		87C0F7CD2AE7A91A00D41ADD /* NiimbotPrintPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NiimbotPrintPlugin.m; path = ../../../ios/Classes/NiimbotPrintPlugin.m; sourceTree = "<group>"; };
-		87C0F7CE2AE7A91A00D41ADD /* PrintUtility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PrintUtility.h; path = ../../../ios/Classes/PrintUtility.h; sourceTree = "<group>"; };
-		87C0F7CF2AE7A91A00D41ADD /* LocalDataConstant.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LocalDataConstant.h; path = ../../../ios/Classes/LocalDataConstant.h; sourceTree = "<group>"; };
-		87C0F7D02AE7A91A00D41ADD /* KeyConstant.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KeyConstant.h; path = ../../../ios/Classes/KeyConstant.h; sourceTree = "<group>"; };
 		8A842111968B7B7A3AD0F67A /* libPods-Runner.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Runner.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		914EB82BEE3E1C2B73021ACB /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
@@ -138,35 +106,6 @@
 			path = RunnerTests;
 			sourceTree = "<group>";
 		};
-		87C0F7BA2AE7A8F700D41ADD /* Custom */ = {
-			isa = PBXGroup;
-			children = (
-				87C0F7C42AE7A91A00D41ADD /* BlueDeviceInfoModel.h */,
-				87C0F7C12AE7A91A00D41ADD /* BlueDeviceInfoModel.m */,
-				87C0F7C82AE7A91A00D41ADD /* JCAPI.h */,
-				87C0F7D02AE7A91A00D41ADD /* KeyConstant.h */,
-				87C0F7BC2AE7A91A00D41ADD /* KeyConstant.m */,
-				87C0F7CF2AE7A91A00D41ADD /* LocalDataConstant.h */,
-				87C0F7CA2AE7A91A00D41ADD /* LocalDataConstant.m */,
-				87C0F7C92AE7A91A00D41ADD /* LocalDataHelper.h */,
-				87C0F7C02AE7A91A00D41ADD /* LocalDataHelper.m */,
-				87C0F7C72AE7A91A00D41ADD /* NiimbotPrintPlugin.h */,
-				87C0F7CD2AE7A91A00D41ADD /* NiimbotPrintPlugin.m */,
-				87C0F7CB2AE7A91A00D41ADD /* PluginConstant.h */,
-				87C0F7BD2AE7A91A00D41ADD /* PluginConstant.m */,
-				87C0F7CC2AE7A91A00D41ADD /* PrintConstant.h */,
-				87C0F7BE2AE7A91A00D41ADD /* PrinterConfigurationModel.h */,
-				87C0F7C62AE7A91A00D41ADD /* PrinterConfigurationModel.m */,
-				87C0F7BF2AE7A91A00D41ADD /* PrintHelper.h */,
-				87C0F7C22AE7A91A00D41ADD /* PrintHelper.m */,
-				87C0F7BB2AE7A91A00D41ADD /* PrintLabelModel.h */,
-				87C0F7C32AE7A91A00D41ADD /* PrintLabelModel.m */,
-				87C0F7CE2AE7A91A00D41ADD /* PrintUtility.h */,
-				87C0F7C52AE7A91A00D41ADD /* PrintUtility.m */,
-			);
-			name = Custom;
-			sourceTree = "<group>";
-		};
 		94F5638BAF496569A3FA723B /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -215,7 +154,6 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
-				87C0F7BA2AE7A8F700D41ADD /* Custom */,
 				7AFFD8ED1D35381100E5BB4D /* AppDelegate.h */,
 				7AFFD8EE1D35381100E5BB4D /* AppDelegate.m */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
@@ -448,19 +386,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				87C0F7D22AE7A91A00D41ADD /* PluginConstant.m in Sources */,
-				87C0F7DA2AE7A91A00D41ADD /* NiimbotPrintPlugin.m in Sources */,
-				87C0F7D42AE7A91A00D41ADD /* BlueDeviceInfoModel.m in Sources */,
 				978B8F6F1D3862AE00F588F7 /* AppDelegate.m in Sources */,
 				97C146F31CF9000F007C117D /* main.m in Sources */,
-				87C0F7D72AE7A91A00D41ADD /* PrintUtility.m in Sources */,
-				87C0F7D62AE7A91A00D41ADD /* PrintLabelModel.m in Sources */,
-				87C0F7D32AE7A91A00D41ADD /* LocalDataHelper.m in Sources */,
-				87C0F7D52AE7A91A00D41ADD /* PrintHelper.m in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
-				87C0F7D92AE7A91A00D41ADD /* LocalDataConstant.m in Sources */,
-				87C0F7D82AE7A91A00D41ADD /* PrinterConfigurationModel.m in Sources */,
-				87C0F7D12AE7A91A00D41ADD /* KeyConstant.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
