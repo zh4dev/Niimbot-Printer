@@ -7,8 +7,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.zh4dev.niimbot_print.Constant.KeyConstant;
 import com.zh4dev.niimbot_print.Constant.MessageConstant;
@@ -16,8 +18,7 @@ import com.zh4dev.niimbot_print.Constant.PrintConstant;
 import com.zh4dev.niimbot_print.Model.BlueDeviceInfoModel;
 import com.zh4dev.niimbot_print.Model.PrintLabelModel;
 import com.zh4dev.niimbot_print.Utility.PrintUtility;
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel.Result;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -25,6 +26,9 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import io.flutter.plugin.common.MethodCall;
+import io.flutter.plugin.common.MethodChannel.Result;
 
 public class PrintHelper {
 

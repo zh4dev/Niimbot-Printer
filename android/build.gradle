@@ -8,7 +8,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.0'
+        classpath 'com.android.tools.build:gradle:7.3.1'
     }
 }
 
@@ -16,9 +16,6 @@ rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
-        flatDir {
-            dirs 'libs'
-        }
     }
 }
 
@@ -58,7 +55,7 @@ android {
 
 
 dependencies {
-    implementation 'com.android.support:support-annotations:28.0.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.guava:guava:24.1-jre'
     implementation(name: '3.1.8-release', ext: 'aar')
     implementation(name: 'image-2.0.10-release', ext: 'aar')

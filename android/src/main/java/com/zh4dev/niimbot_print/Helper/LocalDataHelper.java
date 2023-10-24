@@ -2,7 +2,7 @@ package com.zh4dev.niimbot_print.Helper;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import com.zh4dev.niimbot_print.Constant.LocalDataConstant;
 import com.zh4dev.niimbot_print.Model.PrinterConfigurationModel;
 

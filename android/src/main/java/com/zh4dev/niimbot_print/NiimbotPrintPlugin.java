@@ -1,7 +1,7 @@
 package com.zh4dev.niimbot_print;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import com.zh4dev.niimbot_print.Constant.PluginConstant;
 import com.zh4dev.niimbot_print.Helper.PrintHelper;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
