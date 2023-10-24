@@ -1,8 +1,8 @@
 package com.zh4dev.niimbot_print.Utility;
 
-import androidx.annotation.NonNull;
 import android.app.Application;
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import com.gengcon.www.jcprintersdk.JCPrintApi;
 import com.gengcon.www.jcprintersdk.callback.Callback;
