@@ -139,12 +139,44 @@
     [JCAPI setTotalQuantityOfPrints:1];
     [JCAPI startJob:model.printDensity withPaperStyle:model.printModel withCompletion:^(BOOL isSuccess) {
         if(isSuccess){
-            [JCAPI initDrawingBoard:70 withHeight:50 withHorizontalShift:0 withVerticalShift:0 rotate:90 font:@""];
-            [JCAPI drawLableText:7.5 withY:5.0 withWidth: 40.5 withHeight:6.5 withString:@"F金银花开植物饮料" withFontFamily:@"宋体" withFontSize:3.5 withRotate:0 withTextAlignHorizonral:0 withTextAlignVertical:1 withLineMode:1 withLetterSpacing:0 withLineSpacing:1 withFontStyle: @[@0,@0,@0,@0]];
+            NSInteger width = 50;
+            NSInteger height = 30;
+            NSInteger orientation = 0;
+            [JCAPI
+             initDrawingBoard:width
+             withHeight:height
+             withHorizontalShift:0
+             withVerticalShift:0
+             rotate:orientation
+             font:defaultFontName
+            ];
+            for (NSInteger i = 0; i < printLabelModels.count; i++) {
+                PrintLabelModel *model = printLabelModels[i];
+                float marginX = 0;
+                float marginY = 0;
+                float rectangleWidth = width - marginX * 2;
+                float rectangleHeight = height - marginY * 2;
+                float lineHeight = rectangleHeight / 5.0f;
+                float fontSize = model.fontSize / 4.5;
+                [JCAPI
+                 drawLableText:marginX
+                 withY:marginY + lineHeight * (i + 1)
+                 withWidth: rectangleWidth
+                 withHeight: lineHeight
+                 withString: model.text
+                 withFontFamily:defaultFontName
+                 withFontSize:fontSize
+                 withRotate:orientation
+                 withTextAlignHorizonral:1
+                 withTextAlignVertical:1
+                 withLineMode:6
+                 withLetterSpacing:0
+                 withLineSpacing:1
+                 withFontStyle: @[@0,@0,@0,@0]
+                ];
+            }
             [JCAPI commit:[JCAPI GenerateLableJson] withOnePageNumbers:1 withComplete:^(BOOL isSuccess) {
-                if (isSuccess) {
-                 
-                }
+                if (isSuccess) {}
             }];
         }
     }];

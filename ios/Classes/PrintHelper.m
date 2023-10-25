@@ -1,9 +1,9 @@
+#import <Flutter/Flutter.h>
 #import "PrintHelper.h"
 #import "JCAPI.h"
 #import "BlueDeviceInfoModel.h"
 #import "KeyConstant.h"
 #import "PrintLabelModel.h"
-#import <Flutter/Flutter.h>
 #import "PrintUtility.h"
 #import "LocalDataHelper.h"
 
@@ -21,7 +21,7 @@
     NSMutableArray *stringList = call.arguments;
     NSMutableArray<PrintLabelModel *> *printLabelModels = [NSMutableArray array];
     if ([stringList count] > 0) {
-        for (NSInteger i = 0; i < [stringList count]; i++) {
+        for (NSInteger i = 0; i < stringList.count; i++) {
             [printLabelModels addObject:[PrintLabelModel fromJson:stringList[i]]];
             if (i == [stringList count] - 1) {
                 PrintUtility *printUtility = [[PrintUtility alloc] init];

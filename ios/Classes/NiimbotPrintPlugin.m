@@ -1,3 +1,4 @@
+#import <Flutter/Flutter.h>
 #import "NiimbotPrintPlugin.h"
 #import "PluginConstant.h"
 #import "PrintHelper.h"
@@ -18,7 +19,7 @@
   } else if ([onStartConnect isEqualToString:call.method]) {
     [printHelper onStartConnect:call result:result];
   } else if ([onStartPrintText isEqualToString:call.method]) {
-    [printHelper onStartPrintText:call result:result;
+    [printHelper onStartPrintText:call result:result];
   } else if ([onDisconnect isEqualToString:call.method]) {
     [printHelper onDisconnect:result];
   } else {

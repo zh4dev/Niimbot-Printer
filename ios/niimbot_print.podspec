@@ -19,6 +19,9 @@ A new flutter plugin project.
   s.dependency 'Flutter'
   s.platform = :ios, '11.0'
 
+  s.pod_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
+  s.user_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
+
   # Imported Libraries
   s.frameworks = 'CoreMedia', 'AVFoundation'
   s.resources = 'Libraries/Source/**/*', 'Libraries/JCSDKFont.bundle'

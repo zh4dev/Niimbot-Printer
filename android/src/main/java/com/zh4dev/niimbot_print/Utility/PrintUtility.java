@@ -251,7 +251,7 @@ public class PrintUtility {
                         model.getText(),
                         KeyConstant.defaultFontName,
                         fontSize,
-                        0, 1, 1, 6, 0, 1,
+                        orientation, 1, 1, 6, 0, 1,
                         new boolean[]{false, false, false, false}
                 );
             }
