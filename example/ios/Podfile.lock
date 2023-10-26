@@ -1,4 +1,6 @@
 PODS:
+  - bluetooth_enable_fork (0.1.4):
+    - Flutter
   - Flutter (1.0.0)
   - integration_test (0.0.1):
     - Flutter
@@ -8,12 +10,15 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
+  - bluetooth_enable_fork (from `.symlinks/plugins/bluetooth_enable_fork/ios`)
   - Flutter (from `Flutter`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - niimbot_print (from `.symlinks/plugins/niimbot_print/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
 
 EXTERNAL SOURCES:
+  bluetooth_enable_fork:
+    :path: ".symlinks/plugins/bluetooth_enable_fork/ios"
   Flutter:
     :path: Flutter
   integration_test:
@@ -24,9 +29,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
 
 SPEC CHECKSUMS:
+  bluetooth_enable_fork: 73b8ca6e67230a9baa04010cd5c1e824e00d2797
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   integration_test: 13825b8a9334a850581300559b8839134b124670
-  niimbot_print: bca96ff099ab39a2fe396892de1a81e2e07ddadd
+  niimbot_print: 085f9fe091e7544227d39d8495dabecef0a26f17
   permission_handler_apple: e76247795d700c14ea09e3a2d8855d41ee80a2e6
 
 PODFILE CHECKSUM: 02caaa843f6501172c0d470d80e72f61175c8b93
