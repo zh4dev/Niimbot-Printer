@@ -16,14 +16,16 @@ class NiimbotPrint {
   final PermissionsHelper permissionsHelper = PermissionsHelper();
 
   Future<String?> _isAllPassed() async {
-    var isBluetoothEnabled = await bluetoothHelper.isBluetoothEnabled();
-    if (isBluetoothEnabled == false) {
-      return MessageConstant.bluetoothIsNotEnabled;
-    }
     var isBluetoothPermissionGranted =
         await permissionsHelper.isBluetoothPermissionGranted();
     if (isBluetoothPermissionGranted == false) {
       return MessageConstant.bluetoothPermissionsNotGranted;
+    }
+    if (isBluetoothPermissionGranted) {
+      var isBluetoothEnabled = await bluetoothHelper.isBluetoothEnabled();
+      if (isBluetoothEnabled == false) {
+        return MessageConstant.bluetoothIsNotEnabled;
+      }
     }
     return null;
   }
