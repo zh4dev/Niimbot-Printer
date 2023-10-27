@@ -2,6 +2,7 @@
 #import "NiimbotPrintPlugin.h"
 #import "PluginConstant.h"
 #import "PrintHelper.h"
+#import "PrintUtility.h"
 
 @implementation NiimbotPrintPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
@@ -13,6 +14,7 @@
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
+
   PrintHelper *printHelper = [[PrintHelper alloc] init];
   if ([onStartScan isEqualToString:call.method]) {
     [printHelper onStartScan:call result:result];

@@ -113,10 +113,9 @@
 
 
 - (void)printLabel:(NSArray<PrintLabelModel*> *)printLabelModels result:(FlutterResult)result {
-    if ([JCAPI isConnectingState] != 0) {
-        result(errorPrint);
-        return;
-    }
+    NSString *str = [[NSBundle mainBundle] pathForResource:@"SourceHanSans-Regular" ofType:@"ttc"];
+    [JCAPI initImageProcessing:str error:nil];
+    [JCAPI setPrintWithCache:YES];
     PrinterConfigurationModel *model = [[LocalDataHelper alloc] getPrinterModel];
     [JCAPI getPrintingErrorInfo:^(NSString *printInfo) {
         NSInteger intergerValue = [printInfo intValue];

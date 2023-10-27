@@ -41,6 +41,8 @@ class NiimbotPrint {
       onError?.call(MessageConstant.stillScanning);
       return [];
     }
+
+
     _isScanning = true;
     var errorMessage = await _isAllPassed();
     if (errorMessage != null) {

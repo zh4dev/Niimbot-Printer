@@ -10,10 +10,11 @@
 @implementation PrintHelper
 
 - (void)onDisconnect:(FlutterResult)result {
-    if ([JCAPI isConnectingState] != 0) {
-        result(errorPrint);
+    if ([JCAPI isConnectingState] == 0) {
+        result(@(NO));
     } else {
         [JCAPI closePrinter];
+        result(@(YES));
     }
 }
 
@@ -21,7 +22,7 @@
     NSMutableArray *stringList = call.arguments;
     NSMutableArray<PrintLabelModel *> *printLabelModels = [NSMutableArray array];
     if ([stringList count] > 0) {
-        for (NSInteger i = 0; i < stringList.count; i++) {
+        for (int i = 0; i < stringList.count; i++) {
             [printLabelModels addObject:[PrintLabelModel fromJson:stringList[i]]];
             if (i == [stringList count] - 1) {
                 PrintUtility *printUtility = [[PrintUtility alloc] init];
@@ -56,16 +57,13 @@
     NSMutableArray *arr = [NSMutableArray array];
     [JCAPI scanPrinterNames:NO completion:^(NSArray *scanedPrinterNames) {
         for(NSString *name in scanedPrinterNames){
-            if(name.length > 20 && ![name hasPrefix:@"BTP-"]){
-                continue;
-            }
             BlueDeviceInfoModel *model = [[BlueDeviceInfoModel alloc] initWithDeviceName:name deviceHardwareAddress:@("") connectionState:0];
             [arr addObject:model.toJson];
         }
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) scanDuration), dispatch_get_main_queue(), ^{
+            result(arr);
+        });
     }];
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(scanDuration)), dispatch_get_main_queue(), ^{
-        result(arr);
-    });
 }
 
 @end
