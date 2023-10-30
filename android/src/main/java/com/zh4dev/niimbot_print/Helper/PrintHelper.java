@@ -141,7 +141,7 @@ public class PrintHelper {
                     if (isSuccessPairing) {
                         onConnectPrinter(result, bluetoothDevice);
                     } else {
-                        result.error(KeyConstant.failedPairing, MessageConstant.pairingDeviceFail, false);
+                        result.error(KeyConstant.failedPairing, MessageConstant.failedPairing, false);
                     }
                 } catch (Exception e) {
                     String message = MessageConstant.connectionFailed + ": " + e.getMessage();

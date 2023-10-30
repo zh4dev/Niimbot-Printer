@@ -54,6 +54,8 @@ class MethodChannelNiimbotPrint extends NiimbotPrintPlatform {
         onResult(true, MessageConstant.connectionSucceeded);
       } else if (result == KeyConstant.connectionFailed) {
         onResult(false, MessageConstant.connectionFailed);
+      } else if (result == KeyConstant.failedPairing) {
+        onResult(false, MessageConstant.failedPairing);
       } else {
         onResult(false, MessageConstant.unsupportedModels);
       }
@@ -68,9 +70,17 @@ class MethodChannelNiimbotPrint extends NiimbotPrintPlatform {
       {required List<PrintLabelModel> printLabelModelList,
       required Function(bool isSuccess, String message) onResult}) async {
     try {
-      methodChannel.invokeMethod(PluginConstant.onStartPrintText,
+      var result = await methodChannel.invokeMethod(PluginConstant.onStartPrintText,
           printLabelModelList.map((e) => jsonEncode(e.toJson())).toList());
-      onResult(true, MessageConstant.printSucceed);
+      if (result is bool) {
+        if (result) {
+          onResult(true, MessageConstant.printSucceed);
+        } else {
+          onResult(false, MessageConstant.printFailed);
+        }
+      } else {
+        onResult(false, result);
+      }
     } on PlatformException catch (e) {
       LogHelper.error(e, event: PluginConstant.onStartPrintText);
       onResult(false, e.message ?? MessageConstant.printFailed);

@@ -127,11 +127,7 @@
         NSString *totalCount = [printDicInfo valueForKey:@"totalCount"];
         if(totalCount.intValue == 1){
             [JCAPI endPrint:^(BOOL isSuccess) {
-                if (isSuccess) {
-                    result(@(YES));
-                } else {
-                    result(errorPrint);
-                }
+                result(isSuccess ? @(YES) : @(NO));
             }];
         }
     }];

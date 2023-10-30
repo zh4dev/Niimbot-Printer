@@ -9,6 +9,6 @@ public class MessageConstant {
     public static String endPrintingFailed = "End printing failed";
     public static String endPrintingSuccess = "End printing successfully";
     public static String pleaseInputText = "Please input text to continue";
-    public static String pairingDeviceFail = "Unable to Pairing the Device";
+    public static String failedPairing = "Unable to Pairing the Device";
 
 }
