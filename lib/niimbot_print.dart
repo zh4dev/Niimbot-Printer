@@ -30,7 +30,7 @@ class NiimbotPrint {
     return null;
   }
 
-  /// Starts a scan for Nearest Hardware Bluetooth
+  /// Start scan for Nearest Hardware Bluetooth
   /// Timeout closes the stream after a specified [Duration]
   /// Add white list devices that you want to show using this Constant [NiimbotModelConstant]
   Future<List<BlueDeviceInfoModel>?> onStartScan(
