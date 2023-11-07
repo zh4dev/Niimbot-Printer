@@ -42,7 +42,6 @@ class NiimbotPrint {
       return [];
     }
 
-
     _isScanning = true;
     var errorMessage = await _isAllPassed();
     if (errorMessage != null) {
@@ -81,6 +80,7 @@ class NiimbotPrint {
         .onStartConnect(model: model, onResult: onResult);
   }
 
+  /// Maximum List that you can Print is only 3
   Future<void> onStartPrintText(
       {required List<PrintLabelModel> printLabelModelList,
       required Function(bool isSuccess, String message) onResult}) async {
@@ -88,6 +88,10 @@ class NiimbotPrint {
     if (errorMessage != null) {
       onResult(false, errorMessage);
       return;
+    }
+    if (printLabelModelList.length > 3) {
+      throw Exception(MessageConstant.maximumListIs3);
+
     }
     return NiimbotPrintPlatform.instance.onStartPrintText(
         printLabelModelList: printLabelModelList, onResult: onResult);

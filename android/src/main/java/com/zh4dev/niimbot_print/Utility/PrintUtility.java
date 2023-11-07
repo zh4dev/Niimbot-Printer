@@ -254,9 +254,12 @@ public class PrintUtility {
                         orientation, 1, 1, 6, 0, 1,
                         new boolean[]{false, false, false, false}
                 );
+                if (i == printLabelModels.size() - 1) {
+                    onStartCommitData(orientation, width, height);
+                    index++;
+                }
             }
-            onStartCommitData(orientation, width, height);
-            index++;
+
         }
     }
 

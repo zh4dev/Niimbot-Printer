@@ -169,10 +169,13 @@
                  withLineSpacing:1
                  withFontStyle: @[@0,@0,@0,@0]
                 ];
+                if (i == printLabelModels.count -1) {
+                    [JCAPI commit:[JCAPI GenerateLableJson] withOnePageNumbers:1 withComplete:^(BOOL isSuccess) {
+                        if (isSuccess) {}
+                    }];
+                }
             }
-            [JCAPI commit:[JCAPI GenerateLableJson] withOnePageNumbers:1 withComplete:^(BOOL isSuccess) {
-                if (isSuccess) {}
-            }];
+           
         }
     }];
 }

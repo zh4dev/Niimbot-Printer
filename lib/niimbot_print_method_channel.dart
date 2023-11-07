@@ -70,6 +70,7 @@ class MethodChannelNiimbotPrint extends NiimbotPrintPlatform {
       {required List<PrintLabelModel> printLabelModelList,
       required Function(bool isSuccess, String message) onResult}) async {
     try {
+      printLabelModelList.removeWhere((element) => element.text?.isEmpty ?? true);
       var result = await methodChannel.invokeMethod(PluginConstant.onStartPrintText,
           printLabelModelList.map((e) => jsonEncode(e.toJson())).toList());
       if (result is bool) {

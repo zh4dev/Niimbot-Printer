@@ -11,6 +11,7 @@ class MessageConstant {
   static const String stillScanning = 'Another scan is already in progress.';
   static const String bluetoothIsNotEnabled = 'Please enable the bluetooth to continue...';
   static const String failedPairing = "Unable to Pairing the Device";
+  static const String maximumListIs3 = "Maximum list to print is only 3";
 
 
 }
