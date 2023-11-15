@@ -3,6 +3,7 @@
 
 @interface PrintHelper : NSObject
 
+- (void)isConnected:(FlutterResult)result;
 - (void)onDisconnect:(FlutterResult)result;
 - (void)onStartScan:(FlutterMethodCall*)call result:(FlutterResult)result;
 - (void)onStartConnect:(FlutterMethodCall*)call result:(FlutterResult)result;

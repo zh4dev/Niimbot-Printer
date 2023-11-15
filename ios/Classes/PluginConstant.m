@@ -7,5 +7,6 @@ NSString * const onStartScan = @"onStartScan";
 NSString * const onStartConnect = @"onStartConnect";
 NSString * const onStartPrintText = @"onStartPrintText";
 NSString * const onDisconnect = @"onDisconnect";
+NSString * const isConnected = @"isConnected";
 
 @end

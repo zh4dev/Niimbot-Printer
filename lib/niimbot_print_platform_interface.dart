@@ -39,4 +39,8 @@ abstract class NiimbotPrintPlatform extends PlatformInterface {
   Future<bool> onDisconnect() {
     throw UnimplementedError(MessageConstant.errorPlatformNotImplemented);
   }
+
+  Future<bool> isConnected() {
+    throw UnimplementedError(MessageConstant.errorPlatformNotImplemented);
+  }
 }

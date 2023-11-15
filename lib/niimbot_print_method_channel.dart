@@ -99,4 +99,16 @@ class MethodChannelNiimbotPrint extends NiimbotPrintPlatform {
       return false;
     }
   }
+
+  @override
+  Future<bool> isConnected() async {
+    try {
+      bool isSuccess =
+      await methodChannel.invokeMethod(PluginConstant.isConnected);
+      return isSuccess;
+    } on PlatformException catch (e) {
+      LogHelper.error(e, event: PluginConstant.isConnected);
+      return false;
+    }
+  }
 }

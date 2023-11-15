@@ -7,5 +7,6 @@ public class PluginConstant {
     public static final String onStartConnect = "onStartConnect";
     public static final String onStartPrintText = "onStartPrintText";
     public static final String onDisconnect = "onDisconnect";
+    public static final String isConnected = "isConnected";
 
 }

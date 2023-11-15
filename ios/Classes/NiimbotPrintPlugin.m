@@ -24,6 +24,8 @@
     [printHelper onStartPrintText:call result:result];
   } else if ([onDisconnect isEqualToString:call.method]) {
     [printHelper onDisconnect:result];
+  } else if ([isConnected isEqualToString:call.method]) {
+    [printHelper isConnected:result];
   } else {
     result(FlutterMethodNotImplemented);
   }

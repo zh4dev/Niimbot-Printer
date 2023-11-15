@@ -100,4 +100,8 @@ class NiimbotPrint {
   Future<bool> onDisconnect() async {
     return NiimbotPrintPlatform.instance.onDisconnect();
   }
+
+  Future<bool> isConnected() async {
+    return NiimbotPrintPlatform.instance.isConnected();
+  }
 }

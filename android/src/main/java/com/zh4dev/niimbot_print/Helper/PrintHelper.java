@@ -101,6 +101,15 @@ public class PrintHelper {
         }
     }
 
+    public void isConnected(@NonNull Result result) {
+        if (printUtility.connectionStatus() != 0) {
+            Log.e(TAG, "isConnected: Printer are not Connected");
+            result.success(false);
+        } else {
+            result.success(true);
+        }
+    }
+
     public void onStartScan(@NonNull MethodCall call, @NonNull Result result) {
         int scanDuration = (int) call.arguments;
         onCheckBluetoothDiscovery();

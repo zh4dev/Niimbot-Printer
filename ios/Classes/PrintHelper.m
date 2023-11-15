@@ -18,6 +18,14 @@
     }
 }
 
+- (void)isConnected:(FlutterResult)result {
+    if ([JCAPI isConnectingState] == 0) {
+        result(@(NO));
+    } else {
+        result(@(YES));
+    }
+}
+
 - (void)onStartPrintText:(FlutterMethodCall*)call result:(FlutterResult)result {
     NSMutableArray *stringList = call.arguments;
     NSMutableArray<PrintLabelModel *> *printLabelModels = [NSMutableArray array];

@@ -6,5 +6,6 @@ class PluginConstant {
   static const String onStartConnect = "onStartConnect";
   static const String onStartPrintText = "onStartPrintText";
   static const String onDisconnect = "onDisconnect";
+  static const String isConnected = "isConnected";
 
 }
