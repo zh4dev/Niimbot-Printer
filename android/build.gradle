@@ -17,7 +17,8 @@ rootProject.allprojects {
         google()
         mavenCentral()
         flatDir {
-            dir "libs"
+            dirs project(':niimbot_print').file('libs')
+//            dir "libs"
         }
     }
 }
