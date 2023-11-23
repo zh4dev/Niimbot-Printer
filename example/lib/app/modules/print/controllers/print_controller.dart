@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:niimbot_print/constants/message_constant.dart';
 import 'package:niimbot_print/helper/log_helper.dart';
-import 'package:niimbot_print/model/blue_device_info_model.dart';
 import 'package:niimbot_print/niimbot_print.dart';
 import 'package:niimbot_print_example/app/data/commons/constants/ui_constant.dart';
 import 'package:niimbot_print_example/app/data/commons/helpers/base_controller_helper.dart';
@@ -23,7 +22,7 @@ class PrintController extends BaseControllerHelper {
     setBusy();
     deviceList.clear();
     var value = await niimbotPrint.onStartScan(
-        whiteListDevices: [NiimbotModelConstant.b1],
+        whiteListDevices: [NiimbotModelEnum.b1],
         onError: (errorMessage) {
           LogHelper.error(errorMessage, event: 'initializeData');
         });

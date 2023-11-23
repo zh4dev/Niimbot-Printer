@@ -1,7 +1,3 @@
-/// deviceName : ""
-/// deviceHardwareAddress : ""
-/// connectionState : 0
-
 class BlueDeviceInfoModel {
   BlueDeviceInfoModel({
     String? deviceName,

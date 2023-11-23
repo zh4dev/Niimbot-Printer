@@ -1,6 +1,3 @@
-/// text : ""
-/// fontSize : 0.0
-
 class PrintLabelModel {
   PrintLabelModel({
     String? text,

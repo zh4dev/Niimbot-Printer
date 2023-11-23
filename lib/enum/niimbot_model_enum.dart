@@ -1,0 +1,1 @@
+enum NiimbotModelEnum { b1, b3s, b21, zz401 }

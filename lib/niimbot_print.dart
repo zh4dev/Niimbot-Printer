@@ -1,5 +1,5 @@
 import 'package:niimbot_print/constants/message_constant.dart';
-import 'package:niimbot_print/constants/niimbot_model_constant.dart';
+import 'package:niimbot_print/enum/niimbot_model_enum.dart';
 import 'package:niimbot_print/helper/bluetooth_helper.dart';
 import 'package:niimbot_print/helper/permissions_helper.dart';
 import 'package:niimbot_print/model/blue_device_info_model.dart';
@@ -8,7 +8,7 @@ import 'package:niimbot_print/niimbot_print_platform_interface.dart';
 import 'package:collection/collection.dart';
 export 'model/blue_device_info_model.dart';
 export 'model/print_label_model.dart';
-export 'constants/niimbot_model_constant.dart';
+export 'enum/niimbot_model_enum.dart';
 
 class NiimbotPrint {
   bool _isScanning = false;
@@ -35,7 +35,7 @@ class NiimbotPrint {
   /// Add white list devices that you want to show using this Constant [NiimbotModelConstant]
   Future<List<BlueDeviceInfoModel>?> onStartScan(
       {Duration? scanDuration,
-      List<String>? whiteListDevices,
+      List<NiimbotModelEnum>? whiteListDevices,
       Function(String)? onError}) async {
     if (_isScanning) {
       onError?.call(MessageConstant.stillScanning);
@@ -57,7 +57,7 @@ class NiimbotPrint {
       for (var e1 in whiteListDevices) {
         var result = value.firstWhereOrNull((e2) {
           var deviceName = e2.deviceName?.toLowerCase() ?? '';
-          return deviceName.startsWith(e1.toLowerCase());
+          return deviceName.startsWith(e1.name.toLowerCase());
         });
         if (result != null) {
           filteredBluetoothList.add(result);
