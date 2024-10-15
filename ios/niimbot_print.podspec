@@ -23,9 +23,12 @@ A new flutter plugin project.
   s.frameworks = ["CoreMedia", "AVFoundation", "CoreBluetooth"]
   s.resources = ['Resources/Source/**/*', 'Resources/JCSDKFont.bundle']
   s.vendored_frameworks = 'Resources/Framework/CocoaAsyncSocket.framework'
-  s.vendored_libraries = ['Resources/JCAPI/libJCAPI.a',
+  s.vendored_libraries = [
+    'Resources/JCAPI/libJCAPI.a',
     'Resources/Source/libbz2.1.0.tbd',
     'Resources/Source/libiconv.2.tbd']
-  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'VALID_ARCHS[sdk=iphonesimulator*]' => 'x86_64' }
+  s.pod_target_xcconfig = {
+    'DEFINES_MODULE' => 'YES',
+    'VALID_ARCHS[sdk=iphonesimulator*]' => 'x86_64' }
 
 end

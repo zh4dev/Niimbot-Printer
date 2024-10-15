@@ -18,6 +18,10 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>This app will access your Bluetooth permissions in the service that connects the printer. Do you want to allow Bluetooth to be turned on?</string>
+    <key>NSBluetoothPeripheralUsageDescription</key>
+    <string>This app will access your Bluetooth permissions in the service that connects the printer. Do you want to allow Bluetooth to be turned on?</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
