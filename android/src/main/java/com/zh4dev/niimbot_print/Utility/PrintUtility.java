@@ -128,39 +128,101 @@ public class PrintUtility {
     private String catchPrintError(int code) {
         String errorMsg = MessageConstant.errorDefault;
         switch (code) {
-            case 1 -> errorMsg = "lid open";
-            case 2 -> errorMsg = "Out of paper";
-            case 3 -> errorMsg = "Not enough power";
-            case 4 -> errorMsg = "Battery abnormality";
-            case 5 -> errorMsg = "Manual stop";
-            case 6 -> errorMsg = "data error";
-            case 7 -> errorMsg = "Temperature is too high";
-            case 8 -> errorMsg = "Paper ejection abnormality";
-            case 9 -> errorMsg = "Printing";
-            case 10 -> errorMsg = "No printhead detected";
-            case 11 -> errorMsg = "Ambient temperature is too low";
-            case 12 -> errorMsg = "The print head is not locked";
-            case 13 -> errorMsg = "Ribbon not detected";
-            case 14 -> errorMsg = "Mismatched ribbon";
-            case 15 -> errorMsg = "Used up ribbon";
-            case 16 -> errorMsg = "Unsupported paper types";
-            case 17 -> errorMsg = "Paper type setting failed";
-            case 18 -> errorMsg = "Print mode setting failed";
-            case 19 -> errorMsg = "Failed to set concentration";
-            case 20 -> errorMsg = "Failed to write rfid";
-            case 21 -> errorMsg = "Margin setting failed";
-            case 22 -> errorMsg = "Communication abnormality";
-            case 23 -> errorMsg = "Printer disconnected";
-            case 24 -> errorMsg = "Artboard parameter error";
-            case 25 -> errorMsg = "Wrong rotation angle";
-            case 26 -> errorMsg = "json parameter error";
-            case 27 -> errorMsg = "Paper ejection abnormality (B3S)";
-            case 28 -> errorMsg = "Check paper type";
-            case 29 -> errorMsg = "The RFID tag is not being written to";
-            case 30 -> errorMsg = "Density setting is not supported";
-            case 31 -> errorMsg = "Unsupported print mode";
-            default -> {
-            }
+            case 1:
+                errorMsg = "lid open";
+                break;
+            case 2:
+                errorMsg = "Out of paper";
+                break;
+            case 3:
+                errorMsg = "Not enough power";
+                break;
+            case 4:
+                errorMsg = "Battery abnormality";
+                break;
+            case 5:
+                errorMsg = "Manual stop";
+                break;
+            case 6:
+                errorMsg = "data error";
+                break;
+            case 7:
+                errorMsg = "Temperature is too high";
+                break;
+            case 8:
+                errorMsg = "Paper ejection abnormality";
+                break;
+            case 9:
+                errorMsg = "Printing";
+                break;
+            case 10:
+                errorMsg = "No printhead detected";
+                break;
+            case 11:
+                errorMsg = "Ambient temperature is too low";
+                break;
+            case 12:
+                errorMsg = "The print head is not locked";
+                break;
+            case 13:
+                errorMsg = "Ribbon not detected";
+                break;
+            case 14:
+                errorMsg = "Mismatched ribbon";
+                break;
+            case 15:
+                errorMsg = "Used up ribbon";
+                break;
+            case 16:
+                errorMsg = "Unsupported paper types";
+                break;
+            case 17:
+                errorMsg = "Paper type setting failed";
+                break;
+            case 18:
+                errorMsg = "Print mode setting failed";
+                break;
+            case 19:
+                errorMsg = "Failed to set concentration";
+                break;
+            case 20:
+                errorMsg = "Failed to write rfid";
+                break;
+            case 21:
+                errorMsg = "Margin setting failed";
+                break;
+            case 22:
+                errorMsg = "Communication abnormality";
+                break;
+            case 23:
+                errorMsg = "Printer disconnected";
+                break;
+            case 24:
+                errorMsg = "Artboard parameter error";
+                break;
+            case 25:
+                errorMsg = "Wrong rotation angle";
+                break;
+            case 26:
+                errorMsg = "json parameter error";
+                break;
+            case 27:
+                errorMsg = "Paper ejection abnormality (B3S)";
+                break;
+            case 28:
+                errorMsg = "Check paper type";
+                break;
+            case 29:
+                errorMsg = "The RFID tag is not being written to";
+                break;
+            case 30:
+                errorMsg = "Density setting is not supported";
+                break;
+            case 31:
+                errorMsg = "Unsupported print mode";
+                break;
+            default:
+                errorMsg = "Unknown error";
         }
         return errorMsg;
     }

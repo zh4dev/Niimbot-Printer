@@ -143,24 +143,29 @@ public class PrintHelper {
         );
         Log.d(TAG, "Connection State: " + blueDeviceInfoModel.getConnectionState());
         switch (blueDeviceInfoModel.getConnectionState()) {
-            case PrintConstant.NO_BOND -> executorService.submit(() -> {
-                try {
-                    boolean isSuccessPairing = bluetoothDevice.createBond();
-                    Log.d(TAG, "Pairing Result: " + isSuccessPairing);
-                    if (isSuccessPairing) {
-                        onConnectPrinter(result, bluetoothDevice);
-                    } else {
-                        result.error(KeyConstant.failedPairing, MessageConstant.failedPairing, false);
+            case PrintConstant.NO_BOND: {
+                executorService.submit(() -> {
+                    try {
+                        boolean isSuccessPairing = bluetoothDevice.createBond();
+                        Log.d(TAG, "Pairing Result: " + isSuccessPairing);
+                        if (isSuccessPairing) {
+                            onConnectPrinter(result, bluetoothDevice);
+                        } else {
+                            result.error(KeyConstant.failedPairing, MessageConstant.failedPairing, false);
+                        }
+                    } catch (Exception e) {
+                        String message = MessageConstant.connectionFailed + ": " + e.getMessage();
+                        result.error(KeyConstant.connectionFailed, message, false);
+                        Log.e(TAG, message);
                     }
-                } catch (Exception e) {
-                    String message = MessageConstant.connectionFailed + ": " + e.getMessage();
-                    result.error(KeyConstant.connectionFailed, message, false);
-                    Log.e(TAG, message);
-                }
-            });
-            case PrintConstant.BONDED ->
-                    executorService.submit(() -> onConnectPrinter(result, bluetoothDevice));
-            default -> {
+                });
+                break;
+            }
+            case PrintConstant.BONDED: {
+                executorService.submit(() -> onConnectPrinter(result, bluetoothDevice));
+                break;
+            }
+            default: {
             }
         }
     }
