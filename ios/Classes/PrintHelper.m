@@ -63,7 +63,7 @@
 - (void)onStartScan:(FlutterMethodCall*)call result:(FlutterResult)result {
     NSNumber *scanDuration = call.arguments;
     NSMutableArray *arr = [NSMutableArray array];
-    [JCAPI scanPrinterNames:NO completion:^(NSArray *scanedPrinterNames) {
+    [JCAPI scanBluetoothPrinter:^(NSArray *scanedPrinterNames) {
         for(NSString *name in scanedPrinterNames){
             BlueDeviceInfoModel *model = [[BlueDeviceInfoModel alloc] initWithDeviceName:name deviceHardwareAddress:@("") connectionState:0];
             [arr addObject:model.toJson];
