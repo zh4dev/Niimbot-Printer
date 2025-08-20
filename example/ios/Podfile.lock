@@ -1,26 +1,27 @@
 PODS:
-  - bluetooth_enable_fork (0.1.4):
-    - Flutter
   - Flutter (1.0.0)
+  - flutter_blue_plus_darwin (0.0.2):
+    - Flutter
+    - FlutterMacOS
   - integration_test (0.0.1):
     - Flutter
   - niimbot_print (0.0.1):
     - Flutter
-  - permission_handler_apple (9.1.1):
+  - permission_handler_apple (9.3.0):
     - Flutter
 
 DEPENDENCIES:
-  - bluetooth_enable_fork (from `.symlinks/plugins/bluetooth_enable_fork/ios`)
   - Flutter (from `Flutter`)
+  - flutter_blue_plus_darwin (from `.symlinks/plugins/flutter_blue_plus_darwin/darwin`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - niimbot_print (from `.symlinks/plugins/niimbot_print/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
 
 EXTERNAL SOURCES:
-  bluetooth_enable_fork:
-    :path: ".symlinks/plugins/bluetooth_enable_fork/ios"
   Flutter:
     :path: Flutter
+  flutter_blue_plus_darwin:
+    :path: ".symlinks/plugins/flutter_blue_plus_darwin/darwin"
   integration_test:
     :path: ".symlinks/plugins/integration_test/ios"
   niimbot_print:
@@ -29,12 +30,12 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
 
 SPEC CHECKSUMS:
-  bluetooth_enable_fork: 73b8ca6e67230a9baa04010cd5c1e824e00d2797
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  integration_test: ce0a3ffa1de96d1a89ca0ac26fca7ea18a749ef4
-  niimbot_print: 0d7fe447ee9496dd622edd8f2c44779a765f84ae
-  permission_handler_apple: e76247795d700c14ea09e3a2d8855d41ee80a2e6
+  flutter_blue_plus_darwin: 904ed52825285a15f60e9d90312337a09f11a785
+  integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
+  niimbot_print: 8a6e4b74471a2c5737507da61be041cfa10a832e
+  permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
 
 PODFILE CHECKSUM: 6e700dec67e6deac9b1c69bb14c49a2217a12d15
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2
