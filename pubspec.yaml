@@ -1,6 +1,6 @@
 name: niimbot_print
 description: Niimbot Printer Integration
-version: 0.0.4
+version: 0.0.5
 homepage: https://zh4.dev/
 
 environment:
@@ -28,9 +28,3 @@ flutter:
         pluginClass: NiimbotPrintPlugin
       ios:
         pluginClass: NiimbotPrintPlugin
-      linux:
-        pluginClass: NiimbotPrintPlugin
-      macos:
-        pluginClass: NiimbotPrintPlugin
-      windows:
-        pluginClass: NiimbotPrintPluginCApi
