@@ -2,6 +2,10 @@
 
 All notable changes to `niimbot_print` will be documented here.
 
+## 0.0.5
+
+- Update the Readme.md
+
 ## 0.0.4
 
 - Improve Bluetooth scan and connect stability on Android and iOS.

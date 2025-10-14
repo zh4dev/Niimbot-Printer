@@ -1,7 +1,7 @@
 name: niimbot_print
 description: Niimbot Printer Integration
 version: 0.0.4
-homepage: zh4.dev
+homepage: https://zh4.dev/
 
 environment:
   sdk: ^3.5.3
