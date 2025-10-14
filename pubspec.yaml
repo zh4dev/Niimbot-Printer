@@ -1,18 +1,18 @@
 name: niimbot_print
 description: Niimbot Printer Integration
-version: 0.0.2
-homepage:
+version: 0.0.4
+homepage: zh4.dev
 
 environment:
   sdk: ^3.5.3
-  flutter: '>=3.3.0'
+  flutter: ">=3.3.0"
 
 dependencies:
   flutter:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
   permission_handler: ^12.0.0+1
-  flutter_blue_plus: ^1.33.5
+  flutter_blue_plus: ^2.0.0
   collection: ^1.17.2
 
 dev_dependencies:
@@ -21,7 +21,6 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 
 flutter:
-
   plugin:
     platforms:
       android:
@@ -35,4 +34,3 @@ flutter:
         pluginClass: NiimbotPrintPlugin
       windows:
         pluginClass: NiimbotPrintPluginCApi
-

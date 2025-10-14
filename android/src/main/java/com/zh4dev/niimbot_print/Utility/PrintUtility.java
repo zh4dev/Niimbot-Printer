@@ -40,8 +40,9 @@ public class PrintUtility {
     private ArrayList<String> infoList;
 
     private static final Callback CALLBACK = new Callback() {
+
         @Override
-        public void onConnectSuccess(String s) {
+        public void onConnectSuccess(String s, int i) {
 
         }
 
@@ -71,12 +72,12 @@ public class PrintUtility {
         }
 
         @Override
-        public void onPrinterIsFree(int i) {
+        public void onRibbonStatus(int i) {
 
         }
 
         @Override
-        public void onHeartDisConnect() {
+        public void onRibbonRfidReadStatus(int i) {
 
         }
 
@@ -91,15 +92,14 @@ public class PrintUtility {
     public void getInstance() {
         if (api == null) {
             api = JCPrintApi.getInstance(CALLBACK);
-            api.init((Application) mContext);
-            api.initImageProcessingDefault("", "");
+            api.initSdk((Application) mContext);
         }
     }
 
 
     public int openPrinter(String address) {
         getInstance();
-        return api.openPrinterByAddress(address);
+        return api.connectBluetoothPrinter(address);
     }
 
     public void close() {
@@ -235,14 +235,14 @@ public class PrintUtility {
         initPrint();
         initPrintData();
         int totalQuantity = pageCount * quantity;
-        api.setTotalQuantityOfPrints(totalQuantity);
+        api.setTotalPrintQuantity(totalQuantity);
         api.startPrintJob(model.printDensity, 1, model.printModel, new PrintCallback() {
             @Override
             public void onProgress(int pageIndex, int quantityIndex, HashMap<String, Object> hashMap) {
                 Log.d(TAG, "Test | pageIndex: " + pageIndex + " quantityIndex: " + quantityIndex);
                 if (pageIndex == pageCount && quantityIndex == quantity) {
                     Log.d(TAG, "Test | onProgress: End printing");
-                    if (api.endJob()) {
+                    if (api.endPrintJob()) {
                         result.success(true);
                         Log.d(TAG, MessageConstant.endPrintingSuccess);
                     } else {
