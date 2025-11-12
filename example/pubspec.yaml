@@ -13,7 +13,6 @@ dependencies:
   shimmer: ^3.0.0
   niimbot_print:
     path: ../
-  niimbot_label_printer: ^0.0.2
 
 dev_dependencies:
   flutter_lints: ^2.0.0

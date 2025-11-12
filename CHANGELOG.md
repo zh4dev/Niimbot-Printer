@@ -2,6 +2,10 @@
 
 All notable changes to `niimbot_print` will be documented here.
 
+## 0.0.6
+
+- Fix the libs that are not found on android
+
 ## 0.0.5
 
 - Update the Readme.md

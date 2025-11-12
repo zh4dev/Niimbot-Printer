@@ -22,7 +22,6 @@ A new Flutter plugin project.
     'Resources/JCAPI/libJCAPI.a',
     'Resources/JCAPI/libJCLPAPI.a',
     'Resources/JCAPI/libSkiaRenderLibrary.a',
-
   ]
 
   s.pod_target_xcconfig = {

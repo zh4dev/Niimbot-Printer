@@ -13,13 +13,8 @@ android/local.properties
 android/app/build/
 android/build/
 **/*.iml
-android/libs/*.jar
 ios/Pods/
 ios/.symlinks/
 ios/Flutter/Flutter.framework/
 ios/Flutter/Flutter.podspec
-macos/Pods/
-macos/.symlinks/
-macos/Flutter/Flutter.framework/
-windows/x64/
-linux/x64/
+example/build/
