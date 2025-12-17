@@ -12,9 +12,10 @@ android/.idea/
 android/local.properties
 android/app/build/
 android/build/
+android/gradle.wrapper/gradle-wrapper.jar
 **/*.iml
 ios/Pods/
 ios/.symlinks/
 ios/Flutter/Flutter.framework/
 ios/Flutter/Flutter.podspec
-example/build/
+ios/Resources/

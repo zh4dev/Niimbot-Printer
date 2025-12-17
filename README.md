@@ -1,3 +1,4 @@
+
 # Niimbot Printer Flutter Plugin
 
 ## 📖 Introduction
@@ -7,8 +8,8 @@
 
 ## ⚙️ Setup
 
-### iOS Permissions  
-Add the following permissions to your **Info.plist**:
+### iOS Permissions
+Add the following permissions to your **Info.plist** (located in `ios/Runner/Info.plist`):
 
 ```xml
 <key>NSBluetoothAlwaysUsageDescription</key>
@@ -21,7 +22,19 @@ Add the following permissions to your **Info.plist**:
 
 ## 🚀 Getting Started
 
-### 1. Scan for nearby Niimbot printers
+### 1. Add the `niimbot_print` dependency
+
+In your **`pubspec.yaml`** file, add the following dependency:
+
+```yaml
+dependencies:
+  niimbot_print:
+    git: https://github.com/zh4dev/Niimbot-Printer.git
+```
+
+This will pull the plugin directly from GitHub.
+
+### 2. Scan for nearby Niimbot printers
 ```dart
 var value = await niimbotPrint.onStartScan(
   whiteListDevices: [NiimbotModelEnum.b1],
@@ -31,7 +44,7 @@ var value = await niimbotPrint.onStartScan(
 );
 ```
 
-### 2. Connect to a scanned device
+### 3. Connect to a scanned device
 ```dart
 if (blueDeviceInfoModel.value.connectionState != null) {
   await niimbotPrint.onDisconnect();
@@ -51,7 +64,7 @@ if (blueDeviceInfoModel.value.connectionState != null) {
 }
 ```
 
-### 3. Start printing
+### 4. Start printing
 ```dart
 await niimbotPrint.onStartPrintText(
   printLabelModelList: [
@@ -96,6 +109,13 @@ a specialized package that includes platform-specific implementation code for An
 ---
 
 ## 👤 Author
-- **Created By:** Gerzha Hayat Prakarsha  
-- **Portfolio:** [https://zh4.dev/](https://zh4.dev/)  
-- **GitHub:** [https://github.com/zh4dev](https://github.com/zh4dev)  
+- **Created By:** Gerzha Hayat Prakarsha
+- **Portfolio:** [https://zh4.dev/](https://zh4.dev/)
+- **GitHub:** [https://github.com/zh4dev](https://github.com/zh4dev)
+
+---
+
+### Notes:
+- **iOS Configuration:** Ensure that you’ve added the necessary Bluetooth permissions in the **Info.plist** file.
+- **Android Setup:** The Android setup, including dependencies like `.aar` files, will be handled automatically by the plugin.
+- **iOS Testing:** Make sure that your iOS project has the necessary capabilities (e.g., Bluetooth) enabled in Xcode, and test the plugin on a real device, as Bluetooth features may not work in the iOS simulator.
