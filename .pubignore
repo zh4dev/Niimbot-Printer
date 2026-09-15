@@ -18,4 +18,4 @@ ios/Pods/
 ios/.symlinks/
 ios/Flutter/Flutter.framework/
 ios/Flutter/Flutter.podspec
-ios/Resources/
+plugins/

@@ -27,8 +27,8 @@ class PrintController extends BaseControllerHelper {
           LogHelper.error(errorMessage, event: 'initializeData');
         });
     setIdle();
-    if (value?.isNotEmpty ?? false) {
-      deviceList.value = value!;
+    if (value.isNotEmpty) {
+      deviceList.value = value;
     }
   }
 
@@ -85,5 +85,27 @@ class PrintController extends BaseControllerHelper {
             LogHelper.error(message, event: 'onStartPrint');
           }
         });
+  }
+
+  Future<void> onStartPrintQrCode() async {
+    isLoadingPrinting.value = true;
+    await niimbotPrint.onStartPrintQrCode(
+      qrCode: const PrintQrCodeModel(
+        data: 'https://pub.dev/packages/niimbot_print',
+        size: 22,
+      ),
+      onResult: (isSuccess, message) {
+        isLoadingPrinting.value = false;
+        if (isSuccess) {
+          Get.snackbar(
+            MessageConstant.printSucceed,
+            message,
+            snackPosition: SnackPosition.BOTTOM,
+          );
+        } else {
+          LogHelper.error(message, event: 'onStartPrintQrCode');
+        }
+      },
+    );
   }
 }

@@ -1,16 +1,18 @@
-# niimbot_print_example
+# Niimbot Print example
 
-Demonstrates how to use the niimbot_print plugin.
+This application demonstrates how to:
 
-## Getting Started
+- scan for nearby supported Niimbot printers;
+- connect and disconnect over Bluetooth;
+- print a text label; and
+- print a QR code.
 
-This project is a starting point for a Flutter application.
+Run the example on a physical Android or iOS device:
 
-A few resources to get you started if this is your first Flutter project:
+```sh
+flutter pub get
+flutter run
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Bluetooth printing is not expected to work in a simulator or emulator because
+the bundled Niimbot SDK contains device-only native binaries.

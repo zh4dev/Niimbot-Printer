@@ -23,7 +23,7 @@ class MainButtonWidget extends StatelessWidget {
   final Function onPressed;
 
   const MainButtonWidget(
-      {Key? key,
+      {super.key,
       this.text,
       this.isDisable = false,
       required this.onPressed,
@@ -35,8 +35,7 @@ class MainButtonWidget extends StatelessWidget {
       this.borderSide,
       this.customLeftText,
       this.padding,
-      this.height = 45})
-      : super(key: key);
+      this.height = 45});
 
   @override
   Widget build(BuildContext context) {

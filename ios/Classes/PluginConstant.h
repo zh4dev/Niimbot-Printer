@@ -6,7 +6,9 @@ extern NSString * const niimbotPrint;
 extern NSString * const onStartScan;
 extern NSString * const onStartConnect;
 extern NSString * const onStartPrintText;
+extern NSString * const onStartPrintQrCode;
 extern NSString * const onDisconnect;
 extern NSString * const isConnected;
+extern NSString * const getAndroidSdkInt;
 
 @end

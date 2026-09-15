@@ -1,18 +1,17 @@
 import 'package:get/get.dart';
 
-class BaseControllerHelper extends GetxController  {
-
+class BaseControllerHelper extends GetxController {
   final loadingStatus = false.obs;
 
-  void setBusy(){
+  void setBusy() {
     loadingStatus.value = true;
   }
 
-  void setIdle(){
+  void setIdle() {
     loadingStatus.value = false;
   }
 
-  void setError(){
+  void setError() {
     loadingStatus.addError('error');
   }
 

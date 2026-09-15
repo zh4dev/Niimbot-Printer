@@ -6,16 +6,16 @@ plugins {
 
 android {
     namespace = "com.zh4dev.niimbot_print_example"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = "29.0.13113456 rc1"
+    compileSdk = 37
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11
+        jvmTarget = JavaVersion.VERSION_17
     }
 
     defaultConfig {

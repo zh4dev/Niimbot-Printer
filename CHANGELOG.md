@@ -2,6 +2,21 @@
 
 All notable changes to `niimbot_print` will be documented here.
 
+## 0.1.0
+
+- Include the required native iOS libraries in the published package.
+- Refresh the installation, platform setup, and usage documentation.
+- Add QR code printing on Android and iOS.
+- Upgrade the bundled Android SDK to 4.1.1 and the iOS JCAPI SDK to 3.2.8.
+- Include the Android LPAPI dependency required by supported third-party printer paths.
+- Correct the Android QR code type and rotation argument order.
+- Isolate Android discovery results per scan so stale devices are never returned by a later scan.
+- Fix Android connection result fall-through and scan lifecycle handling.
+- Fix the iOS scan timeout unit and guard native result callbacks.
+- Correct Bluetooth permissions for Android 12 and earlier.
+- Add Dart, native, and integration test coverage.
+- Update the Android example to AGP 9.1, Gradle 9.3, Java 17, and SDK 37.
+
 ## 0.0.6
 
 - Fix the libs that are not found on android
@@ -43,4 +58,3 @@ All notable changes to `niimbot_print` will be documented here.
 
 ¹ Package page shows desktop platforms listed in metadata.  
 ² See dependencies listed on the package page.
-

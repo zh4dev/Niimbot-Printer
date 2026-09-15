@@ -4,6 +4,7 @@
 #import "BlueDeviceInfoModel.h"
 #import "KeyConstant.h"
 #import "PrintLabelModel.h"
+#import "PrintQrCodeModel.h"
 #import "PrintUtility.h"
 #import "LocalDataHelper.h"
 
@@ -12,66 +13,133 @@
 - (void)onDisconnect:(FlutterResult)result {
     if ([JCAPI isConnectingState] == 0) {
         result(@(NO));
-    } else {
-        [JCAPI closePrinter];
-        result(@(YES));
+        return;
     }
+    [JCAPI closePrinter];
+    result(@(YES));
 }
 
 - (void)isConnected:(FlutterResult)result {
-    if ([JCAPI isConnectingState] == 0) {
-        result(@(NO));
-    } else {
-        result(@(YES));
-    }
+    result(@([JCAPI isConnectingState] != 0));
 }
 
-- (void)onStartPrintText:(FlutterMethodCall*)call result:(FlutterResult)result {
-    NSMutableArray *stringList = call.arguments;
-    NSMutableArray<PrintLabelModel *> *printLabelModels = [NSMutableArray array];
-    if ([stringList count] > 0) {
-        for (int i = 0; i < stringList.count; i++) {
-            [printLabelModels addObject:[PrintLabelModel fromJson:stringList[i]]];
-            if (i == [stringList count] - 1) {
-                PrintUtility *printUtility = [[PrintUtility alloc] init];
-                [printUtility printLabel:printLabelModels result:result];
-            }
-        }
-    } else {
-        result(emptyText);
-    }
-}
-
-- (void)onStartConnect:(FlutterMethodCall*)call result:(FlutterResult)result {
-    NSString *arguments = call.arguments;
-    BlueDeviceInfoModel *model = [[BlueDeviceInfoModel alloc] fromJson:arguments];
-    if(model.deviceName == nil || model.deviceName.length == 0) {
-        result(failedPairing);
+- (void)onStartPrintText:(FlutterMethodCall *)call result:(FlutterResult)result {
+    NSArray *values = [call.arguments isKindOfClass:[NSArray class]]
+        ? call.arguments
+        : @[];
+    if (values.count == 0) {
+        result([FlutterError errorWithCode:emptyText
+                                   message:@"Print data cannot be empty"
+                                   details:nil]);
         return;
     }
+
+    NSMutableArray<PrintLabelModel *> *models = [NSMutableArray array];
+    for (id value in values) {
+        if ([value isKindOfClass:[NSString class]]) {
+            [models addObject:[PrintLabelModel fromJson:value]];
+        }
+    }
+    if (models.count == 0) {
+        result([FlutterError errorWithCode:emptyText
+                                   message:@"Print data cannot be empty"
+                                   details:nil]);
+        return;
+    }
+    [[[PrintUtility alloc] init] printLabel:models result:result];
+}
+
+- (void)onStartPrintQrCode:(FlutterMethodCall *)call result:(FlutterResult)result {
+    if (![call.arguments isKindOfClass:[NSString class]]) {
+        result([FlutterError errorWithCode:emptyText
+                                   message:@"QR code data cannot be empty"
+                                   details:nil]);
+        return;
+    }
+    PrintQrCodeModel *model = [PrintQrCodeModel fromJson:call.arguments];
+    if (model.data.length == 0 || model.size <= 0 || model.size > 30) {
+        result([FlutterError errorWithCode:emptyText
+                                   message:@"Invalid QR code data or size"
+                                   details:nil]);
+        return;
+    }
+    [[[PrintUtility alloc] init] printQrCode:model result:result];
+}
+
+- (void)onStartConnect:(FlutterMethodCall *)call result:(FlutterResult)result {
+    if (![call.arguments isKindOfClass:[NSString class]]) {
+        result([FlutterError errorWithCode:connectionFailed
+                                   message:@"Invalid printer data"
+                                   details:nil]);
+        return;
+    }
+    BlueDeviceInfoModel *model = [[[BlueDeviceInfoModel alloc] init]
+        fromJson:call.arguments];
+    if (model.deviceName.length == 0) {
+        result([FlutterError errorWithCode:failedPairing
+                                   message:@"Printer name cannot be empty"
+                                   details:nil]);
+        return;
+    }
+
+    __block BOOL completed = NO;
     [JCAPI openPrinter:model.deviceName completion:^(BOOL isSuccess) {
-        LocalDataHelper *localDataHelper = [[LocalDataHelper alloc] init];
+        if (completed) {
+            return;
+        }
+        completed = YES;
         if (isSuccess) {
-            [localDataHelper setPrinterModel:model.deviceName];
+            [[[LocalDataHelper alloc] init] setPrinterModel:model.deviceName];
             result(connectionSuccess);
         } else {
-            result(failedPairing);
+            result([FlutterError errorWithCode:failedPairing
+                                       message:@"Unable to pair the device"
+                                       details:nil]);
         }
     }];
 }
 
-- (void)onStartScan:(FlutterMethodCall*)call result:(FlutterResult)result {
-    NSNumber *scanDuration = call.arguments;
-    NSMutableArray *arr = [NSMutableArray array];
-    [JCAPI scanBluetoothPrinter:^(NSArray *scanedPrinterNames) {
-        for(NSString *name in scanedPrinterNames){
-            BlueDeviceInfoModel *model = [[BlueDeviceInfoModel alloc] initWithDeviceName:name deviceHardwareAddress:@("") connectionState:0];
-            [arr addObject:model.toJson];
+- (void)onStartScan:(FlutterMethodCall *)call result:(FlutterResult)result {
+    NSNumber *durationValue = [call.arguments isKindOfClass:[NSNumber class]]
+        ? call.arguments
+        : @6000;
+    int64_t durationMilliseconds = MAX(durationValue.longLongValue, 1);
+    NSMutableDictionary<NSString *, NSString *> *devices =
+        [NSMutableDictionary dictionary];
+    __block BOOL completed = NO;
+
+    [JCAPI scanBluetoothPrinter:^(NSArray *printerNames) {
+        if (completed) {
+            return;
         }
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) scanDuration), dispatch_get_main_queue(), ^{
-            result(arr);
-        });
+        @synchronized (devices) {
+            for (id value in printerNames) {
+                if (![value isKindOfClass:[NSString class]]) {
+                    continue;
+                }
+                NSString *name = value;
+                BlueDeviceInfoModel *model = [[BlueDeviceInfoModel alloc]
+                    initWithDeviceName:name
+                    deviceHardwareAddress:@""
+                    connectionState:0];
+                devices[name] = model.toJson;
+            }
+        }
     }];
+
+    dispatch_after(
+        dispatch_time(DISPATCH_TIME_NOW, durationMilliseconds * NSEC_PER_MSEC),
+        dispatch_get_main_queue(),
+        ^{
+            if (completed) {
+                return;
+            }
+            completed = YES;
+            @synchronized (devices) {
+                result(devices.allValues);
+            }
+        }
+    );
 }
 
 @end

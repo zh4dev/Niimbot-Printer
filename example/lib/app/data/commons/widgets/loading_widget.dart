@@ -4,21 +4,17 @@ import 'package:niimbot_print_example/app/data/commons/constants/ui_constant.dar
 import 'package:shimmer/shimmer.dart';
 
 class LoadingWidget {
-
   static Widget listCardLoading({int itemCount = 6}) => ListView.builder(
       itemCount: itemCount,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         return Padding(
-          padding: EdgeInsets.only(top: index == 0 ? 0 : MarginSizeConstant.medium),
-          child: loadingShimmerCard(
-              width: double.maxFinite,
-              height: 80
-          ),
+          padding:
+              EdgeInsets.only(top: index == 0 ? 0 : MarginSizeConstant.medium),
+          child: loadingShimmerCard(width: double.maxFinite, height: 80),
         );
-      }
-  );
+      });
 
   static Widget customCircularProgressindicator(
       {double size = 23, double? value, double strokeWidth = 4.0}) {
@@ -50,5 +46,4 @@ class LoadingWidget {
       ),
     );
   }
-
 }

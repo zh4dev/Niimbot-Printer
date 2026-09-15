@@ -8,5 +8,6 @@
 - (void)onStartScan:(FlutterMethodCall*)call result:(FlutterResult)result;
 - (void)onStartConnect:(FlutterMethodCall*)call result:(FlutterResult)result;
 - (void)onStartPrintText:(FlutterMethodCall*)call result:(FlutterResult)result;
+- (void)onStartPrintQrCode:(FlutterMethodCall*)call result:(FlutterResult)result;
 
 @end

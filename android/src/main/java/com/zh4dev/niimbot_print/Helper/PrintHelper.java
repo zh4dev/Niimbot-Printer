@@ -7,9 +7,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.zh4dev.niimbot_print.Constant.KeyConstant;
@@ -17,6 +19,7 @@ import com.zh4dev.niimbot_print.Constant.MessageConstant;
 import com.zh4dev.niimbot_print.Constant.PrintConstant;
 import com.zh4dev.niimbot_print.Model.BlueDeviceInfoModel;
 import com.zh4dev.niimbot_print.Model.PrintLabelModel;
+import com.zh4dev.niimbot_print.Model.PrintQrCodeModel;
 import com.zh4dev.niimbot_print.Utility.PrintUtility;
 
 import java.util.ArrayList;
@@ -32,174 +35,294 @@ import io.flutter.plugin.common.MethodChannel.Result;
 
 public class PrintHelper {
 
-    private final String TAG = "PrintHelper";
+    private static final String TAG = "PrintHelper";
+    private static final long PAIRING_TIMEOUT_MILLIS = 20_000L;
+
     private final LocalDataHelper localDataHelper;
     private final PrintUtility printUtility;
-    private final BluetoothAdapter mBluetoothAdapter;
+    private final BluetoothAdapter bluetoothAdapter;
     private final ExecutorService executorService;
-    private final Context mContext;
-    List<String> blueDeviceList = new ArrayList<>();
+    private final Context context;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final ScanResultStore scanResults = new ScanResultStore();
 
-    public PrintHelper(Context mContext) {
-        this.mContext = mContext;
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        localDataHelper = new LocalDataHelper(mContext);
-        printUtility = new PrintUtility(mContext);
-        ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat(PrintConstant.threadNameFormat).build();
-        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>(1024), threadFactory, new ThreadPoolExecutor.AbortPolicy());
-        blueDeviceList.clear();
+    private boolean receiverRegistered;
+    private Result pendingScanResult;
+
+    public PrintHelper(Context context) {
+        this.context = context;
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        localDataHelper = new LocalDataHelper(context);
+        printUtility = new PrintUtility(context);
+        ThreadFactory threadFactory = new ThreadFactoryBuilder()
+                .setNameFormat(PrintConstant.threadNameFormat)
+                .build();
+        executorService = new ThreadPoolExecutor(
+                1,
+                1,
+                0L,
+                TimeUnit.MILLISECONDS,
+                new LinkedBlockingDeque<>(1024),
+                threadFactory,
+                new ThreadPoolExecutor.AbortPolicy()
+        );
     }
 
-    private void onCheckBluetoothDiscovery() {
-        if (mBluetoothAdapter.isDiscovering()) {
-            if (mBluetoothAdapter.cancelDiscovery()) {
-                mBluetoothAdapter.startDiscovery();
-            }
-        } else {
-            mBluetoothAdapter.startDiscovery();
-        }
-    }
-
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (device != null) {
-                    boolean isSupportBluetoothType = device.getType() == BluetoothDevice.DEVICE_TYPE_CLASSIC
-                            || device.getType() == BluetoothDevice.DEVICE_TYPE_DUAL;
-                    if (isSupportBluetoothType) {
-                        String model = new BlueDeviceInfoModel(
-                                device.getName(),
-                                device.getAddress(),
-                                device.getBondState()
-                        ).toMap();
-                        Log.d(TAG, "Result: " + model);
-                        if (!blueDeviceList.contains(model)) {
-                            blueDeviceList.add(model);
-                        }
-                    }
+        public void onReceive(Context receiverContext, Intent intent) {
+            if (!BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
+                return;
+            }
+            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+            if (device == null) {
+                return;
+            }
+            try {
+                boolean supportedType = device.getType() == BluetoothDevice.DEVICE_TYPE_CLASSIC
+                        || device.getType() == BluetoothDevice.DEVICE_TYPE_DUAL;
+                if (!supportedType) {
+                    return;
                 }
+                String address = device.getAddress();
+                String model = new BlueDeviceInfoModel(
+                        device.getName(),
+                        address,
+                        device.getBondState()
+                ).toMap();
+                scanResults.add(address, model);
+            } catch (SecurityException error) {
+                Log.e(TAG, "Missing permission while reading scan result", error);
             }
         }
     };
 
+    private final Runnable finishScanRunnable = this::finishScan;
+
     public void onDisconnect(@NonNull Result result) {
         if (printUtility.connectionStatus() != 0) {
-            result.error(KeyConstant.errorPrint, MessageConstant.printerNotConnected, false);
-        } else {
-            try {
-                executorService.submit(() -> {
-                    printUtility.close();
-                    result.success(true);
-                });
-            } catch (Exception e) {
-                Log.e(TAG, "onDisconnect: " + e.getMessage());
-                result.error(KeyConstant.failedDisconnect, e.getMessage(), false);
-            }
+            result.success(false);
+            return;
         }
+        executorService.submit(() -> {
+            try {
+                printUtility.close();
+                result.success(true);
+            } catch (Exception error) {
+                Log.e(TAG, "Unable to disconnect", error);
+                result.error(KeyConstant.failedDisconnect, error.getMessage(), null);
+            }
+        });
     }
 
     public void isConnected(@NonNull Result result) {
-        if (printUtility.connectionStatus() != 0) {
-            Log.e(TAG, "isConnected: Printer are not Connected");
-            result.success(false);
-        } else {
-            result.success(true);
-        }
+        result.success(printUtility.connectionStatus() == 0);
     }
 
     public void onStartScan(@NonNull MethodCall call, @NonNull Result result) {
-        int scanDuration = (int) call.arguments;
-        onCheckBluetoothDiscovery();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(BluetoothDevice.ACTION_FOUND);
-        intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-        intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        intentFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        intentFilter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
-        intentFilter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-        intentFilter.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST);
-        mContext.registerReceiver(mReceiver, intentFilter);
-        new Handler().postDelayed(() -> executorService.submit(() -> {
-            onCheckBluetoothDiscovery();
-            mContext.unregisterReceiver(mReceiver);
-            result.success(blueDeviceList);
-        }), scanDuration);
+        if (bluetoothAdapter == null) {
+            result.error(KeyConstant.errorPrint, "Bluetooth is not supported", null);
+            return;
+        }
+        if (pendingScanResult != null) {
+            result.error(KeyConstant.errorPrint, "Another scan is already in progress", null);
+            return;
+        }
 
+        int scanDuration = call.arguments instanceof Number
+                ? ((Number) call.arguments).intValue()
+                : 6_000;
+        scanResults.beginScan();
+        pendingScanResult = result;
+
+        try {
+            IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+            ContextCompat.registerReceiver(
+                    context,
+                    receiver,
+                    filter,
+                    ContextCompat.RECEIVER_EXPORTED
+            );
+            receiverRegistered = true;
+            if (bluetoothAdapter.isDiscovering()) {
+                bluetoothAdapter.cancelDiscovery();
+            }
+            if (!bluetoothAdapter.startDiscovery()) {
+                failScan("Unable to start Bluetooth discovery");
+                return;
+            }
+            mainHandler.postDelayed(finishScanRunnable, Math.max(scanDuration, 1));
+        } catch (SecurityException error) {
+            failScan(error.getMessage());
+        }
+    }
+
+    private void finishScan() {
+        if (pendingScanResult == null) {
+            return;
+        }
+        stopDiscovery();
+        unregisterReceiver();
+        Result result = pendingScanResult;
+        pendingScanResult = null;
+        result.success(scanResults.takeResults());
+    }
+
+    private void failScan(String message) {
+        mainHandler.removeCallbacks(finishScanRunnable);
+        stopDiscovery();
+        unregisterReceiver();
+        Result result = pendingScanResult;
+        pendingScanResult = null;
+        scanResults.clear();
+        if (result != null) {
+            result.error(KeyConstant.errorPrint, message, null);
+        }
+    }
+
+    private void stopDiscovery() {
+        if (bluetoothAdapter == null) {
+            return;
+        }
+        try {
+            if (bluetoothAdapter.isDiscovering()) {
+                bluetoothAdapter.cancelDiscovery();
+            }
+        } catch (SecurityException error) {
+            Log.e(TAG, "Unable to stop Bluetooth discovery", error);
+        }
+    }
+
+    private void unregisterReceiver() {
+        if (!receiverRegistered) {
+            return;
+        }
+        try {
+            context.unregisterReceiver(receiver);
+        } catch (IllegalArgumentException error) {
+            Log.w(TAG, "Bluetooth receiver was already unregistered", error);
+        } finally {
+            receiverRegistered = false;
+        }
     }
 
     public void onStartConnect(@NonNull MethodCall call, @NonNull Result result) {
-        String arguments = call.arguments.toString();
-        onCheckBluetoothDiscovery();
-        BlueDeviceInfoModel blueDeviceInfoModel = new BlueDeviceInfoModel(
-                "",
-                "",
-                PrintConstant.NO_BOND
-        ).fromMap(arguments);
-        BluetoothDevice bluetoothDevice = mBluetoothAdapter.getRemoteDevice(
-                blueDeviceInfoModel.getDeviceHardwareAddress()
-        );
-        Log.d(TAG, "Connection State: " + blueDeviceInfoModel.getConnectionState());
-        switch (blueDeviceInfoModel.getConnectionState()) {
-            case PrintConstant.NO_BOND: {
-                executorService.submit(() -> {
-                    try {
-                        boolean isSuccessPairing = bluetoothDevice.createBond();
-                        Log.d(TAG, "Pairing Result: " + isSuccessPairing);
-                        if (isSuccessPairing) {
-                            onConnectPrinter(result, bluetoothDevice);
-                        } else {
-                            result.error(KeyConstant.failedPairing, MessageConstant.failedPairing, false);
-                        }
-                    } catch (Exception e) {
-                        String message = MessageConstant.connectionFailed + ": " + e.getMessage();
-                        result.error(KeyConstant.connectionFailed, message, false);
-                        Log.e(TAG, message);
-                    }
-                });
-                break;
+        if (bluetoothAdapter == null || call.arguments == null) {
+            result.error(KeyConstant.connectionFailed, MessageConstant.connectionFailed, null);
+            return;
+        }
+        stopDiscovery();
+
+        try {
+            BlueDeviceInfoModel model = new BlueDeviceInfoModel(
+                    "",
+                    "",
+                    BluetoothDevice.BOND_NONE
+            ).fromMap(call.arguments.toString());
+            String address = model.getDeviceHardwareAddress();
+            if (address == null || address.isEmpty()) {
+                result.error(KeyConstant.connectionFailed, MessageConstant.connectionFailed, null);
+                return;
             }
-            case PrintConstant.BONDED: {
-                executorService.submit(() -> onConnectPrinter(result, bluetoothDevice));
-                break;
-            }
-            default: {
-            }
+            BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
+            executorService.submit(() -> pairAndConnect(result, device));
+        } catch (Exception error) {
+            result.error(KeyConstant.connectionFailed, error.getMessage(), null);
         }
     }
 
-    private void onConnectPrinter(@NonNull Result result, BluetoothDevice bluetoothDevice) {
-        localDataHelper.setPrinterModel(bluetoothDevice.getName());
-        int connectionResult = printUtility.openPrinter(bluetoothDevice.getAddress());
+    private void pairAndConnect(Result result, BluetoothDevice device) {
+        try {
+            int bondState = device.getBondState();
+            if (bondState == BluetoothDevice.BOND_NONE && !device.createBond()) {
+                result.error(KeyConstant.failedPairing, MessageConstant.failedPairing, null);
+                return;
+            }
+
+            long deadline = System.currentTimeMillis() + PAIRING_TIMEOUT_MILLIS;
+            while (device.getBondState() != BluetoothDevice.BOND_BONDED
+                    && System.currentTimeMillis() < deadline) {
+                Thread.sleep(250L);
+            }
+            if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
+                result.error(KeyConstant.failedPairing, MessageConstant.failedPairing, null);
+                return;
+            }
+            onConnectPrinter(result, device);
+        } catch (InterruptedException error) {
+            Thread.currentThread().interrupt();
+            result.error(KeyConstant.connectionFailed, MessageConstant.connectionFailed, null);
+        } catch (Exception error) {
+            Log.e(TAG, "Unable to connect", error);
+            result.error(KeyConstant.connectionFailed, error.getMessage(), null);
+        }
+    }
+
+    private void onConnectPrinter(@NonNull Result result, BluetoothDevice device) {
+        String deviceName = device.getName();
+        if (deviceName == null || deviceName.isEmpty()) {
+            result.error(
+                    KeyConstant.unsupportedModels,
+                    MessageConstant.unsupportedModels,
+                    null
+            );
+            return;
+        }
+        localDataHelper.setPrinterModel(deviceName);
+        int connectionResult = printUtility.openPrinter(device.getAddress());
         switch (connectionResult) {
-            case 0: {
+            case 0:
                 result.success(KeyConstant.connectionSuccess);
-            }
-            case -1: {
-                result.error(KeyConstant.connectionFailed, MessageConstant.connectionFailed, false);
-            }
-            default: {
-                result.error(KeyConstant.unsupportedModels, MessageConstant.unsupportedModels, false);
-            }
+                return;
+            case -1:
+                result.error(
+                        KeyConstant.connectionFailed,
+                        MessageConstant.connectionFailed,
+                        null
+                );
+                return;
+            default:
+                result.error(
+                        KeyConstant.unsupportedModels,
+                        MessageConstant.unsupportedModels,
+                        null
+                );
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void onStartPrintText(@NonNull MethodCall call, @NonNull Result result) {
-        List<String> stringList = (List<String>) call.arguments;
-        List<PrintLabelModel> printLabelModels = new ArrayList<>();
-        if (!stringList.isEmpty()) {
-            for (int i = 0; i < stringList.size(); i++) {
-                printLabelModels.add(new PrintLabelModel().fromMap(stringList.get(i)));
-                if (i == stringList.size() - 1) {
-                    printUtility.printLabel(printLabelModels, result);
-                }
-            }
-        } else {
-            result.error(KeyConstant.emptyText, MessageConstant.pleaseInputText, false);
+        List<String> values = (List<String>) call.arguments;
+        if (values == null || values.isEmpty()) {
+            result.error(KeyConstant.emptyText, MessageConstant.pleaseInputText, null);
+            return;
         }
+        List<PrintLabelModel> models = new ArrayList<>();
+        for (String value : values) {
+            models.add(new PrintLabelModel().fromMap(value));
+        }
+        printUtility.printLabel(models, result);
     }
 
+    public void onStartPrintQrCode(@NonNull MethodCall call, @NonNull Result result) {
+        if (call.arguments == null) {
+            result.error(KeyConstant.emptyText, MessageConstant.pleaseInputText, null);
+            return;
+        }
+        PrintQrCodeModel qrCode = PrintQrCodeModel.fromJson(call.arguments.toString());
+        if (qrCode.getData() == null || qrCode.getData().trim().isEmpty()) {
+            result.error(KeyConstant.emptyText, MessageConstant.pleaseInputText, null);
+            return;
+        }
+        printUtility.printQrCode(qrCode, result);
+    }
 
+    public void dispose() {
+        mainHandler.removeCallbacks(finishScanRunnable);
+        pendingScanResult = null;
+        scanResults.clear();
+        stopDiscovery();
+        unregisterReceiver();
+        executorService.shutdownNow();
+    }
 }

@@ -1,15 +1,60 @@
+# Niimbot Print
 
-# Niimbot Printer Flutter Plugin
+A Flutter plugin for discovering, connecting to, and printing text labels or QR codes with
+supported Niimbot Bluetooth printers on Android and iOS.
 
-## 📖 Introduction
-**Niimbot-Printer** is a Flutter plugin that integrates with **Niimbot Hardware Printers**, allowing you to print text labels directly from your Flutter application.
+## Features
 
----
+- Scan for nearby Niimbot printers.
+- Filter scan results by supported printer model.
+- Connect and disconnect over Bluetooth.
+- Print up to three text items in a single print request.
+- Print QR codes with configurable dimensions.
+- Check the current printer connection state.
 
-## ⚙️ Setup
+## Supported platforms
 
-### iOS Permissions
-Add the following permissions to your **Info.plist** (located in `ios/Runner/Info.plist`):
+- Android (minimum SDK 19)
+- iOS 12.0 or later
+
+The package requires Flutter 3.44 or later.
+
+This release bundles Niimbot Android SDK 4.1.1, image SDK 1.9.5, and iOS
+JCAPI SDK 3.2.8. Applications do not need to add these native SDK files
+separately.
+
+Bluetooth printing should be tested on a physical device. Bluetooth features
+and the bundled native Niimbot SDK might not work in a simulator or emulator.
+
+## Supported printer models
+
+The currently available model filters are:
+
+- B1
+- B3S
+- B21
+- ZZ401
+
+## Installation
+
+Add `niimbot_print` to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  niimbot_print: ^0.1.0
+```
+
+Then install the dependency:
+
+```sh
+flutter pub get
+```
+
+## Platform setup
+
+### iOS
+
+Add the Bluetooth usage descriptions to `ios/Runner/Info.plist`:
 
 ```xml
 <key>NSBluetoothAlwaysUsageDescription</key>
@@ -18,104 +63,121 @@ Add the following permissions to your **Info.plist** (located in `ios/Runner/Inf
 <string>This app requires Bluetooth access to communicate with Niimbot printers.</string>
 ```
 
----
+The plugin includes the required native iOS libraries. No additional SDK
+installation is required.
 
-## 🚀 Getting Started
+### Android
 
-### 1. Add the `niimbot_print` dependency
+The required Bluetooth permissions and native Android libraries are included
+by the plugin and merged into the application automatically. On Android 11 and
+earlier, the system can request location permission because classic Bluetooth
+discovery requires it. Android 12 and later uses the Nearby devices permission.
 
-In your **`pubspec.yaml`** file, add the following dependency:
+## Usage
 
-```yaml
-dependencies:
-  niimbot_print:
-    git: https://github.com/zh4dev/Niimbot-Printer.git
+Import the package and create a `NiimbotPrint` instance:
+
+```dart
+import 'package:niimbot_print/niimbot_print.dart';
+
+final niimbotPrint = NiimbotPrint();
 ```
 
-This will pull the plugin directly from GitHub.
+### Scan for printers
 
-### 2. Scan for nearby Niimbot printers
+Use `whiteListDevices` to return only specific supported models. Omit it to
+return all discovered Bluetooth devices.
+
 ```dart
-var value = await niimbotPrint.onStartScan(
-  whiteListDevices: [NiimbotModelEnum.b1],
-  onError: (errorMessage) {
-    LogHelper.error(errorMessage, event: 'initializeData');
+final devices = await niimbotPrint.onStartScan(
+  scanDuration: const Duration(seconds: 6),
+  whiteListDevices: const [
+    NiimbotModelEnum.b1,
+    NiimbotModelEnum.b21,
+  ],
+  onError: (message) {
+    print('Scan failed: $message');
   },
 );
+
+if (devices.isEmpty) {
+  print('No Niimbot printer found.');
+}
 ```
 
-### 3. Connect to a scanned device
+The plugin requests the required Bluetooth runtime permissions when scanning,
+connecting, or printing. If permission is denied or Bluetooth is disabled, the
+error callback receives an explanatory message.
+
+### Connect to a printer
+
+Pass one of the devices returned by `onStartScan`:
+
 ```dart
-if (blueDeviceInfoModel.value.connectionState != null) {
-  await niimbotPrint.onDisconnect();
-  blueDeviceInfoModel.value = BlueDeviceInfoModel();
-} else {
+if (devices.isNotEmpty) {
   await niimbotPrint.onStartConnect(
-    model: device,
+    model: devices.first,
     onResult: (isSuccess, message) {
-      if (isSuccess) {
-        blueDeviceInfoModel.value = device;
-      } else {
-        LogHelper.error(message, event: 'onConnectDevice');
-        blueDeviceInfoModel.value = BlueDeviceInfoModel();
-      }
+      print(isSuccess ? 'Connected: $message' : 'Connection failed: $message');
     },
   );
 }
 ```
 
-### 4. Start printing
+You can check the connection at any time:
+
+```dart
+final connected = await niimbotPrint.isConnected();
+```
+
+### Print text labels
+
+A print request accepts at most three `PrintLabelModel` items. Items with empty
+text are ignored, and passing more than three items throws an exception.
+
 ```dart
 await niimbotPrint.onStartPrintText(
   printLabelModelList: [
-    PrintLabelModel(text: 'Gerzha Hayat Prakarsha', fontSize: 16),
-    PrintLabelModel(
-      text: 'https://www.linkedin.com/in/gerzha-hayat-prakarsha-09974899/',
-      fontSize: 14,
-    ),
+    PrintLabelModel(text: 'Product name', fontSize: 16),
+    PrintLabelModel(text: 'SKU-0001', fontSize: 14),
   ],
-  onResult: (isSuccess, message) async {
-    await Future.delayed(const Duration(seconds: 2));
-    isLoadingPrinting.value = false;
-
-    if (isSuccess) {
-      Get.snackbar(
-        MessageConstant.printSucceed,
-        message,
-        snackPosition: SnackPosition.BOTTOM,
-        colorText: Colors.white,
-        borderRadius: BorderRadiusConstant.low,
-        backgroundColor: Get.theme.primaryColor,
-        margin: const EdgeInsets.only(
-          left: MarginSizeConstant.medium,
-          right: MarginSizeConstant.medium,
-          bottom: MarginSizeConstant.medium,
-        ),
-      );
-    } else {
-      LogHelper.error(message, event: 'onStartPrint');
-    }
+  onResult: (isSuccess, message) {
+    print(isSuccess ? 'Print succeeded: $message' : 'Print failed: $message');
   },
 );
 ```
 
----
+### Print a QR code
 
-## 📦 About this project
-This project is a starting point for a Flutter  
-[plugin package](https://flutter.dev/developing-packages/),  
-a specialized package that includes platform-specific implementation code for Android and/or iOS.
+QR codes are printed in the center of the plugin's 50 x 30 mm label canvas.
+The `size` value is expressed in millimeters and must not exceed 30.
 
----
+```dart
+await niimbotPrint.onStartPrintQrCode(
+  qrCode: const PrintQrCodeModel(
+    data: 'https://example.com/products/SKU-0001',
+    size: 22,
+  ),
+  onResult: (isSuccess, message) {
+    print(isSuccess
+        ? 'QR code printed: $message'
+        : 'QR code print failed: $message');
+  },
+);
+```
 
-## 👤 Author
-- **Created By:** Gerzha Hayat Prakarsha
-- **Portfolio:** [https://zh4.dev/](https://zh4.dev/)
-- **GitHub:** [https://github.com/zh4dev](https://github.com/zh4dev)
+### Disconnect
 
----
+```dart
+final disconnected = await niimbotPrint.onDisconnect();
+```
 
-### Notes:
-- **iOS Configuration:** Ensure that you’ve added the necessary Bluetooth permissions in the **Info.plist** file.
-- **Android Setup:** The Android setup, including dependencies like `.aar` files, will be handled automatically by the plugin.
-- **iOS Testing:** Make sure that your iOS project has the necessary capabilities (e.g., Bluetooth) enabled in Xcode, and test the plugin on a real device, as Bluetooth features may not work in the iOS simulator.
+## Complete example
+
+See the [`example`](example/) directory for a complete Flutter application
+that demonstrates scanning, connecting, and printing.
+
+## Author
+
+- Created by [Gerzha Hayat Prakarsha](https://zh4.dev/)
+- [GitHub profile](https://github.com/zh4dev)

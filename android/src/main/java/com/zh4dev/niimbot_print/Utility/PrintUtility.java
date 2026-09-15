@@ -2,8 +2,10 @@ package com.zh4dev.niimbot_print.Utility;
 
 import android.app.Application;
 import android.content.Context;
-import androidx.annotation.NonNull;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+
 import com.gengcon.www.jcprintersdk.JCPrintApi;
 import com.gengcon.www.jcprintersdk.callback.Callback;
 import com.gengcon.www.jcprintersdk.callback.PrintCallback;
@@ -11,337 +13,349 @@ import com.zh4dev.niimbot_print.Constant.KeyConstant;
 import com.zh4dev.niimbot_print.Constant.MessageConstant;
 import com.zh4dev.niimbot_print.Helper.LocalDataHelper;
 import com.zh4dev.niimbot_print.Model.PrintLabelModel;
+import com.zh4dev.niimbot_print.Model.PrintQrCodeModel;
 import com.zh4dev.niimbot_print.Model.PrinterConfigurationModel;
-import java.util.ArrayList;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import io.flutter.plugin.common.MethodChannel;
 
 public class PrintUtility {
 
-    private final String TAG = this.getClass().getSimpleName();
-    private final Context mContext;
-    private final PrinterConfigurationModel model;
+    private static final String TAG = "PrintUtility";
+    private static final int LABEL_WIDTH_MM = 50;
+    private static final int LABEL_HEIGHT_MM = 30;
+    private static final int QR_CODE_TYPE = 31;
 
-    public PrintUtility(Context mContext) {
-        this.mContext = mContext;
-        LocalDataHelper localDataHelper = new LocalDataHelper(mContext);
-        model = localDataHelper.getPrinterModel();
-        initPrint();
-        initPrintData();
+    private final Application application;
+    private final LocalDataHelper localDataHelper;
+    private static final AtomicBoolean PRINT_IN_PROGRESS = new AtomicBoolean(false);
+
+    private static JCPrintApi api;
+
+    public PrintUtility(Context context) {
+        application = (Application) context.getApplicationContext();
+        localDataHelper = new LocalDataHelper(context);
     }
 
-    private int pageCount;
-    private int quantity;
-    private boolean isError;
-    private boolean isCancel;
-    private int[] generatedPrintDataPageCount = {0};
-    private ArrayList<String> jsonList;
-    private ArrayList<String> infoList;
-
     private static final Callback CALLBACK = new Callback() {
-
         @Override
-        public void onConnectSuccess(String s, int i) {
-
+        public void onConnectSuccess(String name, int status) {
         }
 
         @Override
         public void onDisConnect() {
-
         }
 
         @Override
-        public void onElectricityChange(int i) {
-
+        public void onElectricityChange(int electricity) {
         }
 
         @Override
-        public void onCoverStatus(int i) {
-
+        public void onCoverStatus(int status) {
         }
 
         @Override
-        public void onPaperStatus(int i) {
-
+        public void onPaperStatus(int status) {
         }
 
         @Override
-        public void onRfidReadStatus(int i) {
-
+        public void onRfidReadStatus(int status) {
         }
 
         @Override
-        public void onRibbonStatus(int i) {
-
+        public void onRibbonStatus(int status) {
         }
 
         @Override
-        public void onRibbonRfidReadStatus(int i) {
-
+        public void onRibbonRfidReadStatus(int status) {
         }
 
         @Override
         public void onFirmErrors() {
-
         }
     };
 
-    private static JCPrintApi api;
-
-    public void getInstance() {
-        if (api == null) {
-            api = JCPrintApi.getInstance(CALLBACK);
-            api.initSdk((Application) mContext);
+    private void ensureApi() {
+        synchronized (PrintUtility.class) {
+            if (api == null) {
+                api = JCPrintApi.getInstance(CALLBACK);
+                api.initSdk(application);
+            }
         }
     }
 
-
     public int openPrinter(String address) {
-        getInstance();
+        ensureApi();
         return api.connectBluetoothPrinter(address);
     }
 
     public void close() {
-        getInstance();
+        ensureApi();
         api.close();
     }
 
     public int connectionStatus() {
-        getInstance();
+        ensureApi();
         return api.isConnection();
     }
 
-    private void initPrint() {
-        pageCount = 1;
-        quantity = 1;
-        isError = false;
-        isCancel = false;
-        generatedPrintDataPageCount = new int[]{0};
-    }
-
-    private void initPrintData() {
-        jsonList = new ArrayList<>();
-        infoList = new ArrayList<>();
-    }
-
-    private String catchPrintError(int code) {
-        String errorMsg = MessageConstant.errorDefault;
-        switch (code) {
-            case 1:
-                errorMsg = "lid open";
-                break;
-            case 2:
-                errorMsg = "Out of paper";
-                break;
-            case 3:
-                errorMsg = "Not enough power";
-                break;
-            case 4:
-                errorMsg = "Battery abnormality";
-                break;
-            case 5:
-                errorMsg = "Manual stop";
-                break;
-            case 6:
-                errorMsg = "data error";
-                break;
-            case 7:
-                errorMsg = "Temperature is too high";
-                break;
-            case 8:
-                errorMsg = "Paper ejection abnormality";
-                break;
-            case 9:
-                errorMsg = "Printing";
-                break;
-            case 10:
-                errorMsg = "No printhead detected";
-                break;
-            case 11:
-                errorMsg = "Ambient temperature is too low";
-                break;
-            case 12:
-                errorMsg = "The print head is not locked";
-                break;
-            case 13:
-                errorMsg = "Ribbon not detected";
-                break;
-            case 14:
-                errorMsg = "Mismatched ribbon";
-                break;
-            case 15:
-                errorMsg = "Used up ribbon";
-                break;
-            case 16:
-                errorMsg = "Unsupported paper types";
-                break;
-            case 17:
-                errorMsg = "Paper type setting failed";
-                break;
-            case 18:
-                errorMsg = "Print mode setting failed";
-                break;
-            case 19:
-                errorMsg = "Failed to set concentration";
-                break;
-            case 20:
-                errorMsg = "Failed to write rfid";
-                break;
-            case 21:
-                errorMsg = "Margin setting failed";
-                break;
-            case 22:
-                errorMsg = "Communication abnormality";
-                break;
-            case 23:
-                errorMsg = "Printer disconnected";
-                break;
-            case 24:
-                errorMsg = "Artboard parameter error";
-                break;
-            case 25:
-                errorMsg = "Wrong rotation angle";
-                break;
-            case 26:
-                errorMsg = "json parameter error";
-                break;
-            case 27:
-                errorMsg = "Paper ejection abnormality (B3S)";
-                break;
-            case 28:
-                errorMsg = "Check paper type";
-                break;
-            case 29:
-                errorMsg = "The RFID tag is not being written to";
-                break;
-            case 30:
-                errorMsg = "Density setting is not supported";
-                break;
-            case 31:
-                errorMsg = "Unsupported print mode";
-                break;
-            default:
-                errorMsg = "Unknown error";
-        }
-        return errorMsg;
-    }
-
-    public void printLabel(List<PrintLabelModel> printLabelModels, @NonNull MethodChannel.Result result) {
-        if (connectionStatus() != 0) {
-            result.error(KeyConstant.errorPrint, MessageConstant.printerNotConnected, false);
-            return;
-        }
-        initPrint();
-        initPrintData();
-        int totalQuantity = pageCount * quantity;
-        api.setTotalPrintQuantity(totalQuantity);
-        api.startPrintJob(model.printDensity, 1, model.printModel, new PrintCallback() {
-            @Override
-            public void onProgress(int pageIndex, int quantityIndex, HashMap<String, Object> hashMap) {
-                Log.d(TAG, "Test | pageIndex: " + pageIndex + " quantityIndex: " + quantityIndex);
-                if (pageIndex == pageCount && quantityIndex == quantity) {
-                    Log.d(TAG, "Test | onProgress: End printing");
-                    if (api.endPrintJob()) {
-                        result.success(true);
-                        Log.d(TAG, MessageConstant.endPrintingSuccess);
-                    } else {
-                        result.error(KeyConstant.errorPrint, MessageConstant.endPrintingFailed, false);
-                        Log.d(TAG, MessageConstant.endPrintingFailed);
-                    }
-                }
-            }
-
-            @Override
-            public void onError(int i) {
-                isError = true;
-                result.error(KeyConstant.errorPrint, catchPrintError(i), false);
-            }
-
-            @Override
-            public void onError(int errorCode, int printState) {
-                isError = true;
-                result.error(KeyConstant.errorPrint, catchPrintError(errorCode), false);
-            }
-
-            @Override
-            public void onCancelJob(boolean isSuccess) {
-                isCancel = true;
-            }
-
-            @Override
-            public void onBufferFree(int pageIndex, int bufferSize) {
-                Log.d(TAG, "Test: Page data sent: " + pageIndex + ", Cache space:" + bufferSize);
-                Log.d(TAG, "Test: Generate sequence: " + generatedPrintDataPageCount[0]);
-                Log.d(TAG, "Test: Total number of pages: " + pageCount);
-                if ((isError || isCancel) || (pageIndex > pageCount)) {
-                    return;
-                }
-                Log.d(TAG, "Test-idle data callback-data generation judgment-total number of pages" + pageCount + ", Number of pages generated:" + generatedPrintDataPageCount[0] + ", Idle callback data length：" + bufferSize);
-                if (generatedPrintDataPageCount[0] < pageCount) {
-                    int commitDataLength = Math.min((pageCount - generatedPrintDataPageCount[0]), bufferSize);
-                    onStartPrintText(printLabelModels, generatedPrintDataPageCount[0], generatedPrintDataPageCount[0] + commitDataLength);
-                    api.commitData(
-                            jsonList.subList(generatedPrintDataPageCount[0], generatedPrintDataPageCount[0] + commitDataLength),
-                            infoList.subList(generatedPrintDataPageCount[0], generatedPrintDataPageCount[0] + commitDataLength));
-                    generatedPrintDataPageCount[0] += commitDataLength;
-                }
-
-            }
-        });
-    }
-
-    private void onStartPrintText(List<PrintLabelModel> printLabelModels, int index, int cycleIndex) {
-        while (index < cycleIndex) {
-            int orientation = 0;
-            int width = 50;
-            int height = 30;
-            api.drawEmptyLabel(width, height, orientation, "");
-            for (int i = 0; i < printLabelModels.size(); i++) {
-                PrintLabelModel model = printLabelModels.get(i);
-                float marginX = 0;
-                float marginY = 0;
-                float rectangleWidth = width - marginX * 2;
-                float rectangleHeight = height - marginY * 2;
-                float lineHeight = rectangleHeight / 5.0F;
+    public void printLabel(
+            List<PrintLabelModel> models,
+            @NonNull MethodChannel.Result result
+    ) {
+        startPrint(result, () -> {
+            api.drawEmptyLabel(LABEL_WIDTH_MM, LABEL_HEIGHT_MM, 0, "");
+            float lineHeight = LABEL_HEIGHT_MM / 5.0F;
+            for (int index = 0; index < models.size(); index++) {
+                PrintLabelModel model = models.get(index);
                 float fontSize = (float) (model.getFontSize() / 4.5);
                 api.drawLabelText(
-                        marginX,
-                        marginY + lineHeight * (i + 1),
-                        rectangleWidth,
+                        0,
+                        lineHeight * (index + 1),
+                        LABEL_WIDTH_MM,
                         lineHeight,
                         model.getText(),
                         KeyConstant.defaultFontName,
                         fontSize,
-                        orientation, 1, 1, 6, 0, 1,
+                        0,
+                        1,
+                        1,
+                        6,
+                        0,
+                        1,
                         new boolean[]{false, false, false, false}
                 );
-                if (i == printLabelModels.size() - 1) {
-                    onStartCommitData(orientation, width, height);
-                    index++;
-                }
             }
+            return createPrintData();
+        });
+    }
 
+    public void printQrCode(
+            PrintQrCodeModel qrCode,
+            @NonNull MethodChannel.Result result
+    ) {
+        startPrint(result, () -> {
+            float size = (float) qrCode.getSize();
+            float x = (LABEL_WIDTH_MM - size) / 2.0F;
+            float y = (LABEL_HEIGHT_MM - size) / 2.0F;
+            api.drawEmptyLabel(LABEL_WIDTH_MM, LABEL_HEIGHT_MM, 0, "");
+            api.drawLabelQrCode(
+                    x,
+                    y,
+                    size,
+                    size,
+                    qrCode.getData(),
+                    QR_CODE_TYPE,
+                    0
+            );
+            return createPrintData();
+        });
+    }
+
+    private void startPrint(
+            @NonNull MethodChannel.Result result,
+            LabelRenderer renderer
+    ) {
+        if (connectionStatus() != 0) {
+            result.error(KeyConstant.errorPrint, MessageConstant.printerNotConnected, null);
+            return;
+        }
+        if (!PRINT_IN_PROGRESS.compareAndSet(false, true)) {
+            result.error(KeyConstant.errorPrint, "Another print job is in progress", null);
+            return;
+        }
+
+        AtomicBoolean completed = new AtomicBoolean(false);
+        PrinterConfigurationModel configuration = localDataHelper.getPrinterModel();
+        api.setTotalPrintQuantity(1);
+        api.startPrintJob(
+                configuration.printDensity,
+                1,
+                configuration.printModel,
+                new PrintCallback() {
+                    private boolean dataCommitted;
+
+                    @Override
+                    public void onProgress(
+                            int pageIndex,
+                            int quantityIndex,
+                            HashMap<String, Object> details
+                    ) {
+                        if (pageIndex == 1 && quantityIndex == 1) {
+                            boolean ended = api.endPrintJob();
+                            complete(result, completed, ended, MessageConstant.endPrintingFailed);
+                        }
+                    }
+
+                    @Override
+                    public void onError(int errorCode) {
+                        complete(result, completed, false, printError(errorCode));
+                    }
+
+                    @Override
+                    public void onError(int errorCode, int printState) {
+                        complete(result, completed, false, printError(errorCode));
+                    }
+
+                    @Override
+                    public void onCancelJob(boolean success) {
+                        complete(result, completed, false, "Print job was cancelled");
+                    }
+
+                    @Override
+                    public void onPause(boolean success) {
+                        Log.d(TAG, "Print pause completed: " + success);
+                    }
+
+                    @Override
+                    public void onPausing() {
+                        Log.d(TAG, "Print job is pausing");
+                    }
+
+                    @Override
+                    public void onResume(boolean success) {
+                        Log.d(TAG, "Print resume completed: " + success);
+                    }
+
+                    @Override
+                    public void onBufferFree(int pageIndex, int bufferSize) {
+                        if (completed.get() || dataCommitted || bufferSize < 1) {
+                            return;
+                        }
+                        try {
+                            PrintData data = renderer.render();
+                            api.commitData(
+                                    Collections.singletonList(data.labelJson),
+                                    Collections.singletonList(data.printInfoJson)
+                            );
+                            dataCommitted = true;
+                        } catch (Exception error) {
+                            Log.e(TAG, "Unable to prepare print data", error);
+                            complete(result, completed, false, error.getMessage());
+                        }
+                    }
+                }
+        );
+    }
+
+    private PrintData createPrintData() {
+        String labelJson = new String(api.generateLabelJson(), StandardCharsets.UTF_8);
+        float multiple = localDataHelper.getPrinterModel().printMultiple;
+        String printInfoJson = "{\"printerImageProcessingInfo\":{" +
+                "\"orientation\":0," +
+                "\"margin\":[0,0,0,0]," +
+                "\"printQuantity\":1," +
+                "\"horizontalOffset\":0," +
+                "\"verticalOffset\":0," +
+                "\"width\":" + LABEL_WIDTH_MM + "," +
+                "\"height\":" + LABEL_HEIGHT_MM + "," +
+                "\"printMultiple\":" + multiple + "," +
+                "\"epc\":\"\"}}";
+        return new PrintData(labelJson, printInfoJson);
+    }
+
+    private void complete(
+            MethodChannel.Result result,
+            AtomicBoolean completed,
+            boolean success,
+            String errorMessage
+    ) {
+        if (!completed.compareAndSet(false, true)) {
+            return;
+        }
+        PRINT_IN_PROGRESS.set(false);
+        if (success) {
+            result.success(true);
+        } else {
+            result.error(KeyConstant.errorPrint, errorMessage, null);
         }
     }
 
-    private void onStartCommitData(int orientation, float width, float height) {
-        byte[] jsonByte = api.generateLabelJson();
-        String jsonStr = new String(jsonByte);
-        jsonList.add(jsonStr);
-        String jsonInfo = "{  " +
-                "\"printerImageProcessingInfo\": " + "{    " +
-                "\"orientation\":" + orientation + "," +
-                "   \"margin\": [      0,      0,      0,      0    ], " +
-                "   \"printQuantity\": " + quantity + ",  " +
-                "  \"horizontalOffset\": 0,  " +
-                "  \"verticalOffset\": 0,  " +
-                "  \"width\":" + width + "," +
-                "   \"height\":" + height + "," +
-                "\"printMultiple\":" + model.printMultiple + "," +
-                "  \"epc\": \"\"  }}";
-        infoList.add(jsonInfo);
+    private String printError(int code) {
+        switch (code) {
+            case 1:
+                return "Lid open";
+            case 2:
+                return "Out of paper";
+            case 3:
+                return "Not enough power";
+            case 4:
+                return "Battery abnormality";
+            case 5:
+                return "Manual stop";
+            case 6:
+                return "Data error";
+            case 7:
+                return "Temperature is too high";
+            case 8:
+                return "Paper ejection abnormality";
+            case 9:
+                return "Printer is busy";
+            case 10:
+                return "No printhead detected";
+            case 11:
+                return "Ambient temperature is too low";
+            case 12:
+                return "The print head is not locked";
+            case 13:
+                return "Ribbon not detected";
+            case 14:
+                return "Mismatched ribbon";
+            case 15:
+                return "Ribbon is used up";
+            case 16:
+                return "Unsupported paper type";
+            case 17:
+                return "Paper type setting failed";
+            case 18:
+                return "Print mode setting failed";
+            case 19:
+                return "Failed to set density";
+            case 20:
+                return "Failed to write RFID";
+            case 21:
+                return "Margin setting failed";
+            case 22:
+                return "Communication error";
+            case 23:
+                return "Printer disconnected";
+            case 24:
+                return "Artboard parameter error";
+            case 25:
+                return "Wrong rotation angle";
+            case 26:
+                return "JSON parameter error";
+            case 27:
+                return "Paper ejection abnormality (B3S)";
+            case 28:
+                return "Check paper type";
+            case 29:
+                return "RFID tag is not writable";
+            case 30:
+                return "Density setting is not supported";
+            case 31:
+                return "Unsupported print mode";
+            default:
+                return "Unknown print error (" + code + ")";
+        }
     }
 
+    private interface LabelRenderer {
+        PrintData render();
+    }
 
+    private static class PrintData {
+        final String labelJson;
+        final String printInfoJson;
+
+        PrintData(String labelJson, String printInfoJson) {
+            this.labelJson = labelJson;
+            this.printInfoJson = printInfoJson;
+        }
+    }
 }

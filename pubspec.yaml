@@ -1,19 +1,26 @@
 name: niimbot_print
-description: Niimbot Printer Integration
-version: 0.0.6
+description: Print text labels and QR codes with supported Niimbot Bluetooth printers on Android and iOS.
+version: 0.1.0
 homepage: https://zh4.dev/
+repository: https://github.com/zh4dev/Niimbot-Printer
+issue_tracker: https://github.com/zh4dev/Niimbot-Printer/issues
+topics:
+  - bluetooth
+  - printer
+  - label-printer
+  - qr-code
+  - niimbot
 
 environment:
   sdk: ^3.5.3
-  flutter: ">=3.3.0"
+  flutter: ">=3.44.0"
 
 dependencies:
   flutter:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
-  permission_handler: ^12.0.0+1
+  permission_handler: ^13.0.2
   flutter_blue_plus: ^2.0.0
-  collection: ^1.17.2
 
 dev_dependencies:
   flutter_test:

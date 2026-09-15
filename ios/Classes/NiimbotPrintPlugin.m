@@ -22,10 +22,14 @@
     [printHelper onStartConnect:call result:result];
   } else if ([onStartPrintText isEqualToString:call.method]) {
     [printHelper onStartPrintText:call result:result];
+  } else if ([onStartPrintQrCode isEqualToString:call.method]) {
+    [printHelper onStartPrintQrCode:call result:result];
   } else if ([onDisconnect isEqualToString:call.method]) {
     [printHelper onDisconnect:result];
   } else if ([isConnected isEqualToString:call.method]) {
     [printHelper isConnected:result];
+  } else if ([getAndroidSdkInt isEqualToString:call.method]) {
+    result(@0);
   } else {
     result(FlutterMethodNotImplemented);
   }

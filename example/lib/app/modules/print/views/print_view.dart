@@ -7,7 +7,7 @@ import 'package:niimbot_print_example/app/data/commons/widgets/main_button_widge
 import '../controllers/print_controller.dart';
 
 class PrintView extends GetView<PrintController> {
-  const PrintView({Key? key}) : super(key: key);
+  const PrintView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -98,14 +98,29 @@ class PrintView extends GetView<PrintController> {
             ),
           ),
           bottomSheet: SizedBox(
-            height: 45,
-            child: MainButtonWidget(
-              onPressed: controller.onStartPrint,
-              text: TextConstant.startPrint,
-              isLoading: controller.isLoadingPrinting.value,
-              isDisable: (controller.blueDeviceInfoModel.value
-                      .deviceHardwareAddress?.isEmpty ??
-                  true) && controller.isLoadingPrinting.value,
+            height: 100,
+            child: Column(
+              children: [
+                MainButtonWidget(
+                  onPressed: controller.onStartPrint,
+                  text: TextConstant.startPrint,
+                  isLoading: controller.isLoadingPrinting.value,
+                  isDisable: (controller.blueDeviceInfoModel.value
+                              .deviceHardwareAddress?.isEmpty ??
+                          true) ||
+                      controller.isLoadingPrinting.value,
+                ),
+                const SizedBox(height: 10),
+                MainButtonWidget(
+                  onPressed: controller.onStartPrintQrCode,
+                  text: TextConstant.printQrCode,
+                  isLoading: controller.isLoadingPrinting.value,
+                  isDisable: (controller.blueDeviceInfoModel.value
+                              .deviceHardwareAddress?.isEmpty ??
+                          true) ||
+                      controller.isLoadingPrinting.value,
+                ),
+              ],
             ),
           ).marginAll(MarginSizeConstant.medium),
           body: SingleChildScrollView(

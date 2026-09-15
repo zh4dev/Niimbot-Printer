@@ -1,6 +1,7 @@
 package com.zh4dev.niimbot_print;
 
 import android.content.Context;
+import android.os.Build;
 import androidx.annotation.NonNull;
 import com.zh4dev.niimbot_print.Constant.PluginConstant;
 import com.zh4dev.niimbot_print.Helper.PrintHelper;
@@ -37,11 +38,17 @@ public class NiimbotPrintPlugin implements FlutterPlugin, MethodCallHandler {
       case PluginConstant.onStartPrintText:
         printHelper.onStartPrintText(call, result);
         break;
+      case PluginConstant.onStartPrintQrCode:
+        printHelper.onStartPrintQrCode(call, result);
+        break;
       case PluginConstant.onDisconnect:
         printHelper.onDisconnect(result);
         break;
       case PluginConstant.isConnected:
         printHelper.isConnected(result);
+        break;
+      case PluginConstant.getAndroidSdkInt:
+        result.success(Build.VERSION.SDK_INT);
         break;
       default:
         result.notImplemented();
@@ -52,5 +59,8 @@ public class NiimbotPrintPlugin implements FlutterPlugin, MethodCallHandler {
   @Override
   public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
     channel.setMethodCallHandler(null);
+    printHelper.dispose();
+    printHelper = null;
+    channel = null;
   }
 }

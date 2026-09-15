@@ -1,10 +1,4 @@
-//
-//  JCAPI.h
-//  JCPrinterSDK
-//
-//  Created by  ydong on 2019/1/29.
-//  Copyright © 2019  ydong. All rights reserved.
-//
+//version 3.2.8 20250315
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>

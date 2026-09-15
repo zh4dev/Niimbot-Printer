@@ -5,37 +5,28 @@ import 'package:flutter/services.dart';
 import 'package:niimbot_print/constants/key_constant.dart';
 import 'package:niimbot_print/constants/message_constant.dart';
 import 'package:niimbot_print/constants/plugin_constant.dart';
-import 'package:niimbot_print/helper/bluetooth_helper.dart';
 import 'package:niimbot_print/helper/log_helper.dart';
-import 'package:niimbot_print/helper/permissions_helper.dart';
 import 'package:niimbot_print/model/blue_device_info_model.dart';
 import 'package:niimbot_print/model/print_label_model.dart';
+import 'package:niimbot_print/model/print_qr_code_model.dart';
 
 import 'niimbot_print_platform_interface.dart';
 
 class MethodChannelNiimbotPrint extends NiimbotPrintPlatform {
   @visibleForTesting
-
   final methodChannel = const MethodChannel(PluginConstant.niimbotPrint);
-  final PermissionsHelper permissionsHelper = PermissionsHelper();
-  final BluetoothHelper bluetoothHelper = BluetoothHelper();
-
   @override
   Future<List<BlueDeviceInfoModel>> onStartScan(
       {Duration? scanDuration, Function(String)? onError}) async {
     try {
-      List listString = await methodChannel.invokeMethod(
+      final listString = await methodChannel.invokeListMethod<Object?>(
           PluginConstant.onStartScan,
           scanDuration?.inMilliseconds ??
               const Duration(seconds: 6).inMilliseconds);
-      List<BlueDeviceInfoModel> listResult = [];
-      await Future.forEach(
-          listString,
-              (element) => {
-            listResult.add(BlueDeviceInfoModel.fromJson(
-                jsonDecode(element.toString())))
-          });
-      return listResult;
+      return (listString ?? const <Object?>[])
+          .map((element) => BlueDeviceInfoModel.fromJson(
+              jsonDecode(element.toString()) as Map<String, dynamic>))
+          .toList(growable: false);
     } on PlatformException catch (e) {
       onError?.call(e.message ?? MessageConstant.scanFailed);
       LogHelper.error(e, event: PluginConstant.onStartScan);
@@ -48,7 +39,7 @@ class MethodChannelNiimbotPrint extends NiimbotPrintPlatform {
       {required BlueDeviceInfoModel model,
       required Function(bool isSuccess, String message) onResult}) async {
     try {
-      String result = await methodChannel.invokeMethod(
+      final result = await methodChannel.invokeMethod<String>(
           PluginConstant.onStartConnect, jsonEncode(model.toJson()));
       if (result == KeyConstant.connectionSuccess) {
         onResult(true, MessageConstant.connectionSucceeded);
@@ -70,9 +61,12 @@ class MethodChannelNiimbotPrint extends NiimbotPrintPlatform {
       {required List<PrintLabelModel> printLabelModelList,
       required Function(bool isSuccess, String message) onResult}) async {
     try {
-      printLabelModelList.removeWhere((element) => element.text?.isEmpty ?? true);
-      var result = await methodChannel.invokeMethod(PluginConstant.onStartPrintText,
-          printLabelModelList.map((e) => jsonEncode(e.toJson())).toList());
+      final printableItems = printLabelModelList
+          .where((element) => element.text?.trim().isNotEmpty ?? false)
+          .toList(growable: false);
+      final result = await methodChannel.invokeMethod<Object?>(
+          PluginConstant.onStartPrintText,
+          printableItems.map((e) => jsonEncode(e.toJson())).toList());
       if (result is bool) {
         if (result) {
           onResult(true, MessageConstant.printSucceed);
@@ -80,7 +74,7 @@ class MethodChannelNiimbotPrint extends NiimbotPrintPlatform {
           onResult(false, MessageConstant.printFailed);
         }
       } else {
-        onResult(false, result);
+        onResult(false, result?.toString() ?? MessageConstant.printFailed);
       }
     } on PlatformException catch (e) {
       LogHelper.error(e, event: PluginConstant.onStartPrintText);
@@ -89,11 +83,31 @@ class MethodChannelNiimbotPrint extends NiimbotPrintPlatform {
   }
 
   @override
+  Future<void> onStartPrintQrCode(
+      {required PrintQrCodeModel qrCode,
+      required Function(bool isSuccess, String message) onResult}) async {
+    try {
+      final result = await methodChannel.invokeMethod<Object?>(
+        PluginConstant.onStartPrintQrCode,
+        jsonEncode(qrCode.toJson()),
+      );
+      if (result is bool && result) {
+        onResult(true, MessageConstant.printSucceed);
+      } else {
+        onResult(false, result?.toString() ?? MessageConstant.printFailed);
+      }
+    } on PlatformException catch (error) {
+      LogHelper.error(error, event: PluginConstant.onStartPrintQrCode);
+      onResult(false, error.message ?? MessageConstant.printFailed);
+    }
+  }
+
+  @override
   Future<bool> onDisconnect() async {
     try {
-      bool isSuccess =
-      await methodChannel.invokeMethod(PluginConstant.onDisconnect);
-      return isSuccess;
+      return await methodChannel
+              .invokeMethod<bool>(PluginConstant.onDisconnect) ??
+          false;
     } on PlatformException catch (e) {
       LogHelper.error(e, event: PluginConstant.onDisconnect);
       return false;
@@ -103,9 +117,9 @@ class MethodChannelNiimbotPrint extends NiimbotPrintPlatform {
   @override
   Future<bool> isConnected() async {
     try {
-      bool isSuccess =
-      await methodChannel.invokeMethod(PluginConstant.isConnected);
-      return isSuccess;
+      return await methodChannel
+              .invokeMethod<bool>(PluginConstant.isConnected) ??
+          false;
     } on PlatformException catch (e) {
       LogHelper.error(e, event: PluginConstant.isConnected);
       return false;

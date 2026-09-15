@@ -1,9 +1,9 @@
 Pod::Spec.new do |s|
   s.name             = 'niimbot_print'
-  s.version          = '0.0.1'
-  s.summary          = 'Niimbot Printer Integration'
+  s.version          = '0.1.0'
+  s.summary          = 'Print text labels and QR codes with Niimbot printers.'
   s.description      = <<-DESC
-A new Flutter plugin project.
+Flutter integration for supported Niimbot Bluetooth label printers.
                        DESC
   s.homepage         = 'https://zh4dev.github.io/'
   s.license          = { :file => '../LICENSE' }
@@ -13,7 +13,7 @@ A new Flutter plugin project.
   s.public_header_files = 'Classes/**/*.h'
   s.static_framework = true
   s.dependency 'Flutter'
-  s.platform = :ios, '11.0'
+  s.ios.deployment_target = '12.0'
   s.libraries = 'iconv'
 
   # Resources Setup
