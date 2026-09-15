@@ -179,5 +179,5 @@ that demonstrates scanning, connecting, and printing.
 
 ## Author
 
-- Created by [Gerzha Hayat Prakarsha](https://zh4.dev/)
+- Created by [Gerzha Hayat Prakarsha](https://zh4dev.github.io/)
 - [GitHub profile](https://github.com/zh4dev)
