@@ -63,6 +63,27 @@ Add the Bluetooth usage descriptions to `ios/Runner/Info.plist`:
 <string>This app requires Bluetooth access to communicate with Niimbot printers.</string>
 ```
 
+Enable the Bluetooth permission used by `permission_handler` in the host
+application's `ios/Podfile`:
+
+```ruby
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+        'PERMISSION_BLUETOOTH=1',
+      ]
+    end
+  end
+end
+```
+
+After changing the Podfile, run `pod install` from the application's `ios`
+directory. If Bluetooth permission was previously denied, enable it from iOS
+Settings or reinstall the application so iOS can request it again.
+
 The plugin includes the required native iOS libraries. No additional SDK
 installation is required.
 
