@@ -1,6 +1,6 @@
 PODS:
   - Flutter (1.0.0)
-  - niimbot_print (0.1.1):
+  - niimbot_print (0.1.2):
     - Flutter
 
 DEPENDENCIES:
@@ -15,7 +15,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
-  niimbot_print: 0de460f65a765b5a7bf65acc976e581c83c79f09
+  niimbot_print: 55ddfce1a0e4dc802e90f89deb29b3d700cbc29e
 
 PODFILE CHECKSUM: c11b42517b5b3f047008ba6ad6cf3876176dd41b
 

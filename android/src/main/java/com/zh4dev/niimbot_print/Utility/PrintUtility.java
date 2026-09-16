@@ -29,6 +29,9 @@ public class PrintUtility {
     private static final String TAG = "PrintUtility";
     private static final int LABEL_WIDTH_MM = 50;
     private static final int LABEL_HEIGHT_MM = 30;
+    private static final float TEXT_HORIZONTAL_PADDING_MM = 2.0F;
+    private static final float TEXT_WIDTH_MM =
+            LABEL_WIDTH_MM - (TEXT_HORIZONTAL_PADDING_MM * 2.0F);
     private static final int QR_CODE_TYPE = 31;
 
     private final Application application;
@@ -115,9 +118,9 @@ public class PrintUtility {
                 PrintLabelModel model = models.get(index);
                 float fontSize = (float) (model.getFontSize() / 4.5);
                 api.drawLabelText(
-                        0,
+                        TEXT_HORIZONTAL_PADDING_MM,
                         lineHeight * (index + 1),
-                        LABEL_WIDTH_MM,
+                        TEXT_WIDTH_MM,
                         lineHeight,
                         model.getText(),
                         KeyConstant.defaultFontName,

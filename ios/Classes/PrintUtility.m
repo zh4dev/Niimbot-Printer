@@ -8,6 +8,7 @@
 
 static const float JCLabelWidth = 50.0f;
 static const float JCLabelHeight = 30.0f;
+static const float JCTextHorizontalPadding = 2.0f;
 static const int JCQrCodeType = 31;
 static BOOL JCPrintInProgress = NO;
 
@@ -65,9 +66,9 @@ typedef BOOL (^JCDrawingBlock)(void);
         float lineHeight = JCLabelHeight / 5.0f;
         for (NSInteger index = 0; index < models.count; index++) {
             PrintLabelModel *model = models[index];
-            BOOL drawn = [JCAPI drawLableText:0
+            BOOL drawn = [JCAPI drawLableText:JCTextHorizontalPadding
                                         withY:lineHeight * (index + 1)
-                                    withWidth:JCLabelWidth
+                                    withWidth:JCLabelWidth - (JCTextHorizontalPadding * 2.0f)
                                    withHeight:lineHeight
                                    withString:model.text
                                withFontFamily:defaultFontName

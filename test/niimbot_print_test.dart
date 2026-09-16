@@ -24,6 +24,7 @@ class _EnabledBluetooth extends BluetoothHelper {
 class _FakePlatform extends NiimbotPrintPlatform
     with MockPlatformInterfaceMixin {
   List<BlueDeviceInfoModel> scanResults = <BlueDeviceInfoModel>[];
+  List<PrintLabelModel>? receivedLabels;
   PrintQrCodeModel? receivedQrCode;
 
   @override
@@ -39,6 +40,15 @@ class _FakePlatform extends NiimbotPrintPlatform
     required Function(bool isSuccess, String message) onResult,
   }) async {
     receivedQrCode = qrCode;
+    onResult(true, 'ok');
+  }
+
+  @override
+  Future<void> onStartPrintText({
+    required List<PrintLabelModel> printLabelModelList,
+    required Function(bool isSuccess, String message) onResult,
+  }) async {
+    receivedLabels = printLabelModelList;
     onResult(true, 'ok');
   }
 }
@@ -101,6 +111,34 @@ void main() {
 
       expect(errorMessage, contains('30 mm'));
       expect(platform.receivedQrCode, isNull);
+    });
+
+    test('long label text wraps into two lines at a word boundary', () async {
+      await printer.onStartPrintText(
+        printLabelModelList: <PrintLabelModel>[
+          PrintLabelModel(
+            text: 'Flying Cape Technologies Pte Ltd',
+            fontSize: 14,
+          ),
+        ],
+        onResult: (success, message) {},
+      );
+
+      expect(
+        platform.receivedLabels?.single.text,
+        'Flying Cape Technologies\nPte Ltd',
+      );
+    });
+
+    test('explicit line breaks are limited to two lines', () async {
+      await printer.onStartPrintText(
+        printLabelModelList: <PrintLabelModel>[
+          PrintLabelModel(text: 'First\nSecond\nThird', fontSize: 14),
+        ],
+        onResult: (success, message) {},
+      );
+
+      expect(platform.receivedLabels?.single.text, 'First\nSecond Third');
     });
   });
 

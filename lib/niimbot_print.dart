@@ -19,6 +19,8 @@ typedef NiimbotErrorCallback = void Function(String message);
 
 /// High-level API for discovering and printing with Niimbot printers.
 class NiimbotPrint {
+  static const int _maxLabelLineCharacters = 24;
+
   bool _isScanning = false;
   NiimbotPrint({
     BluetoothHelper? bluetoothHelper,
@@ -95,6 +97,9 @@ class NiimbotPrint {
   }
 
   /// Prints up to three non-empty text items on one label.
+  ///
+  /// Long values are wrapped at a word boundary into at most two lines. The
+  /// native SDK then scales those lines to fit inside the field's text box.
   Future<void> onStartPrintText(
       {required List<PrintLabelModel> printLabelModelList,
       required NiimbotResultCallback onResult}) async {
@@ -111,8 +116,47 @@ class NiimbotPrint {
       onResult(false, MessageConstant.emptyPrintData);
       return;
     }
+    final formattedItems = printLabelModelList
+        .map(
+          (item) => item.copyWith(
+            text: _wrapLabelText(item.text ?? ''),
+          ),
+        )
+        .toList(growable: false);
     return NiimbotPrintPlatform.instance.onStartPrintText(
-        printLabelModelList: printLabelModelList, onResult: onResult);
+      printLabelModelList: formattedItems,
+      onResult: onResult,
+    );
+  }
+
+  static String _wrapLabelText(String value) {
+    final normalized = value.trim().replaceAll(RegExp(r'[ \t]+'), ' ');
+    if (normalized.isEmpty) {
+      return normalized;
+    }
+
+    final explicitLines = normalized
+        .split(RegExp(r'\r?\n'))
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList(growable: false);
+    if (explicitLines.length > 1) {
+      return <String>[
+        explicitLines.first,
+        explicitLines.skip(1).join(' '),
+      ].join('\n');
+    }
+
+    final text = explicitLines.first;
+    if (text.length <= _maxLabelLineCharacters) {
+      return text;
+    }
+
+    final breakAt = text.lastIndexOf(' ', _maxLabelLineCharacters);
+    if (breakAt <= 0) {
+      return text;
+    }
+    return '${text.substring(0, breakAt)}\n${text.substring(breakAt + 1)}';
   }
 
   /// Prints a QR code centered on a 50 x 30 mm label.

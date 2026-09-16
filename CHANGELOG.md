@@ -2,6 +2,17 @@
 
 All notable changes to `niimbot_print` will be documented here.
 
+## 0.1.2
+
+- Isolate Android discovery results per scan so stale devices are never returned by a later scan.
+- Add horizontal text safe margins so long label text auto-shrinks instead of being clipped.
+- Wrap long text at word boundaries into at most two lines before printing.
+- Keep the iOS podspec, example deployment target, and CocoaPods lockfile aligned with the package version.
+
+## 0.1.1
+
+- Correct the package homepage metadata.
+
 ## 0.1.0
 
 - Include the required native iOS libraries in the published package.
@@ -10,7 +21,6 @@ All notable changes to `niimbot_print` will be documented here.
 - Upgrade the bundled Android SDK to 4.1.1 and the iOS JCAPI SDK to 3.2.8.
 - Include the Android LPAPI dependency required by supported third-party printer paths.
 - Correct the Android QR code type and rotation argument order.
-- Isolate Android discovery results per scan so stale devices are never returned by a later scan.
 - Fix Android connection result fall-through and scan lifecycle handling.
 - Fix the iOS scan timeout unit and guard native result callbacks.
 - Correct Bluetooth permissions for Android 12 and earlier.
