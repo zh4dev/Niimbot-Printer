@@ -18,6 +18,7 @@ Flutter integration for supported Niimbot Bluetooth label printers.
 
   # Resources Setup
   s.frameworks = ["CoreMedia", "AVFoundation", "CoreBluetooth"]
+  s.resources = ["Resources/Font/*"]
   s.vendored_libraries = [
     'Resources/JCAPI/libJCAPI.a',
     'Resources/JCAPI/libJCLPAPI.a',

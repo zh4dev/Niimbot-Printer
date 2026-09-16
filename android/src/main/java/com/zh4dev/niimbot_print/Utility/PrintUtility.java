@@ -113,15 +113,28 @@ public class PrintUtility {
     ) {
         startPrint(result, () -> {
             api.drawEmptyLabel(LABEL_WIDTH_MM, LABEL_HEIGHT_MM, 0, "");
-            float lineHeight = LABEL_HEIGHT_MM / 5.0F;
-            for (int index = 0; index < models.size(); index++) {
-                PrintLabelModel model = models.get(index);
+            int totalLineCount = 0;
+            for (PrintLabelModel model : models) {
+                totalLineCount += Math.max(model.getText().split("\\r?\\n", -1).length, 1);
+            }
+
+            float defaultLineHeight = LABEL_HEIGHT_MM / 5.0F;
+            float lineHeight = Math.min(
+                    defaultLineHeight,
+                    LABEL_HEIGHT_MM / (float) Math.max(totalLineCount, 1)
+            );
+            float contentHeight = lineHeight * totalLineCount;
+            float currentY = Math.max((LABEL_HEIGHT_MM - contentHeight) / 2.0F, 0.0F);
+
+            for (PrintLabelModel model : models) {
+                int lineCount = Math.max(model.getText().split("\\r?\\n", -1).length, 1);
+                float textBoxHeight = lineHeight * lineCount;
                 float fontSize = (float) (model.getFontSize() / 4.5);
                 api.drawLabelText(
                         TEXT_HORIZONTAL_PADDING_MM,
-                        lineHeight * (index + 1),
+                        currentY,
                         TEXT_WIDTH_MM,
-                        lineHeight,
+                        textBoxHeight,
                         model.getText(),
                         KeyConstant.defaultFontName,
                         fontSize,
@@ -133,6 +146,7 @@ public class PrintUtility {
                         1,
                         new boolean[]{false, false, false, false}
                 );
+                currentY += textBoxHeight;
             }
             return createPrintData();
         });

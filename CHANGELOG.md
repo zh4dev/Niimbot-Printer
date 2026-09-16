@@ -2,6 +2,27 @@
 
 All notable changes to `niimbot_print` will be documented here.
 
+## [Unreleased]
+
+### Fixed
+
+- Fixed false “Enable Bluetooth” warnings on iOS after granting Bluetooth permission or enabling Bluetooth.
+- Wait up to three seconds for CoreBluetooth to transition from `unknown` or `off` to `on`.
+- Fixed iOS label text rendering failures that caused the “Unable to draw label content” error.
+- Preserve label font sizes when long text wraps onto two lines.
+- Added explicit errors for missing font resources, font initialization failures, and print timeouts.
+
+### Changed
+
+- Updated iOS font initialization to follow the official Niimbot SDK v4.1.1 implementation.
+- Updated drawing-board initialization to use `ZT001.ttf` through `fontArray`.
+- Added a 30-second native print timeout.
+
+### Added
+
+- Added official iOS font resources: `FONT.json`, `ZT001.ttf`, and `ZT002.otf`.
+- Added tests for delayed Bluetooth initialization and disabled Bluetooth states.
+
 ## 0.1.2
 
 - Isolate Android discovery results per scan so stale devices are never returned by a later scan.

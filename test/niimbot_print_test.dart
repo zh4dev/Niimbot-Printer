@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niimbot_print/helper/bluetooth_helper.dart';
@@ -55,6 +56,34 @@ class _FakePlatform extends NiimbotPrintPlatform
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  group('BluetoothHelper', () {
+    test('waits for the adapter to become ready after an unknown state',
+        () async {
+      final states = Stream<BluetoothAdapterState>.fromIterable(
+        const <BluetoothAdapterState>[
+          BluetoothAdapterState.unknown,
+          BluetoothAdapterState.on,
+        ],
+      );
+      final helper = BluetoothHelper(
+        adapterStateProvider: () => states,
+        adapterReadyTimeout: const Duration(milliseconds: 100),
+      );
+
+      expect(await helper.isBluetoothEnabled(), isTrue);
+    });
+
+    test('returns false when the adapter does not become ready', () async {
+      final helper = BluetoothHelper(
+        adapterStateProvider: () =>
+            Stream<BluetoothAdapterState>.value(BluetoothAdapterState.off),
+        adapterReadyTimeout: const Duration(milliseconds: 10),
+      );
+
+      expect(await helper.isBluetoothEnabled(), isFalse);
+    });
+  });
 
   group('NiimbotPrint', () {
     late NiimbotPrintPlatform originalPlatform;

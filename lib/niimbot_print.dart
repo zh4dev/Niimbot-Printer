@@ -98,8 +98,8 @@ class NiimbotPrint {
 
   /// Prints up to three non-empty text items on one label.
   ///
-  /// Long values are wrapped at a word boundary into at most two lines. The
-  /// native SDK then scales those lines to fit inside the field's text box.
+  /// Long values are wrapped at a word boundary into at most two lines. Each
+  /// wrapped value receives enough vertical space to retain its font size.
   Future<void> onStartPrintText(
       {required List<PrintLabelModel> printLabelModelList,
       required NiimbotResultCallback onResult}) async {

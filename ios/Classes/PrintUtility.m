@@ -10,6 +10,8 @@ static const float JCLabelWidth = 50.0f;
 static const float JCLabelHeight = 30.0f;
 static const float JCTextHorizontalPadding = 2.0f;
 static const int JCQrCodeType = 31;
+static const NSTimeInterval JCPrintTimeoutSeconds = 30.0;
+static NSString * const JCDefaultFontFile = @"ZT001.ttf";
 static BOOL JCPrintInProgress = NO;
 
 typedef BOOL (^JCDrawingBlock)(void);
@@ -62,14 +64,32 @@ typedef BOOL (^JCDrawingBlock)(void);
             withHorizontalShift:0
               withVerticalShift:0
                          rotate:0
-                           font:defaultFontName];
-        float lineHeight = JCLabelHeight / 5.0f;
-        for (NSInteger index = 0; index < models.count; index++) {
-            PrintLabelModel *model = models[index];
+                      fontArray:@[JCDefaultFontFile]];
+        NSInteger totalLineCount = 0;
+        for (PrintLabelModel *model in models) {
+            NSInteger lineCount = [model.text
+                componentsSeparatedByCharactersInSet:
+                    [NSCharacterSet newlineCharacterSet]].count;
+            totalLineCount += MAX(lineCount, 1);
+        }
+
+        float defaultLineHeight = JCLabelHeight / 5.0f;
+        float lineHeight = MIN(
+            defaultLineHeight,
+            JCLabelHeight / (float)MAX(totalLineCount, 1)
+        );
+        float contentHeight = lineHeight * totalLineCount;
+        float currentY = MAX((JCLabelHeight - contentHeight) / 2.0f, 0.0f);
+
+        for (PrintLabelModel *model in models) {
+            NSInteger lineCount = [model.text
+                componentsSeparatedByCharactersInSet:
+                    [NSCharacterSet newlineCharacterSet]].count;
+            float textBoxHeight = lineHeight * MAX(lineCount, 1);
             BOOL drawn = [JCAPI drawLableText:JCTextHorizontalPadding
-                                        withY:lineHeight * (index + 1)
+                                        withY:currentY
                                     withWidth:JCLabelWidth - (JCTextHorizontalPadding * 2.0f)
-                                   withHeight:lineHeight
+                                   withHeight:textBoxHeight
                                    withString:model.text
                                withFontFamily:defaultFontName
                                  withFontSize:model.fontSize / 4.5
@@ -83,6 +103,7 @@ typedef BOOL (^JCDrawingBlock)(void);
             if (!drawn) {
                 return NO;
             }
+            currentY += textBoxHeight;
         }
         return YES;
     } result:result];
@@ -98,7 +119,7 @@ typedef BOOL (^JCDrawingBlock)(void);
             withHorizontalShift:0
               withVerticalShift:0
                          rotate:0
-                           font:defaultFontName];
+                      fontArray:@[JCDefaultFontFile]];
         return [JCAPI drawLableQrCode:x
                                 withY:y
                             withWidth:size
@@ -145,10 +166,39 @@ typedef BOOL (^JCDrawingBlock)(void);
         }
     };
 
-    NSString *fontPath = [[NSBundle mainBundle]
-        pathForResource:@"SourceHanSans-Regular"
-                 ofType:@"ttc"];
-    [JCAPI initImageProcessing:fontPath error:nil];
+    dispatch_after(
+        dispatch_time(
+            DISPATCH_TIME_NOW,
+            (int64_t)(JCPrintTimeoutSeconds * NSEC_PER_SEC)
+        ),
+        dispatch_get_main_queue(),
+        ^{
+            complete(NO, @"Print timed out. Check the printer connection and try again");
+        }
+    );
+
+    // Follow SDKDemoOC v4.1.1: FONT.json and its font files are copied into
+    // the app resources, then image processing is initialized from the main
+    // bundle resource directory.
+    NSString *resourcePath = [NSBundle mainBundle].resourcePath;
+    NSString *fontManifestPath = [[NSBundle mainBundle]
+        pathForResource:@"FONT"
+                 ofType:@"json"];
+    NSString *defaultFontPath = [[NSBundle mainBundle]
+        pathForResource:@"ZT001"
+                 ofType:@"ttf"];
+    if (resourcePath.length == 0 ||
+        fontManifestPath.length == 0 ||
+        defaultFontPath.length == 0) {
+        complete(NO, @"Niimbot font resource is missing");
+        return;
+    }
+    NSError *fontError = nil;
+    [JCAPI initImageProcessing:resourcePath error:&fontError];
+    if (fontError != nil) {
+        complete(NO, fontError.localizedDescription ?: @"Unable to initialize label renderer");
+        return;
+    }
     [JCAPI setPrintWithCache:YES];
 
     [JCAPI getPrintingErrorInfo:^(NSString *printInfo) {
