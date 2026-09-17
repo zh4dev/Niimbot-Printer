@@ -2,6 +2,20 @@
 
 All notable changes to `niimbot_print` will be documented here.
 
+## 0.1.4
+
+### Fixed
+
+- Fixed iOS label printing being aborted when `drawLableText` reports a false-negative result.
+- Fixed connected printers being treated as disconnected on iOS by checking both the native connection state and active printer name.
+- Fixed successful iOS connections unexpectedly returning users to an empty printer scan screen when printing.
+
+### Changed
+
+- Generate and validate label JSON before starting the physical print job, following the official Niimbot iOS SDK demo flow.
+- Continue generating label JSON when an individual SDK draw call reports `NO`, and fail only when no valid label data is generated.
+- Added native diagnostic logging for connection status and label drawing parameters.
+
 ## 0.1.3
 
 ### Fixed

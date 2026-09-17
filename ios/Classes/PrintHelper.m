@@ -8,10 +8,21 @@
 #import "PrintUtility.h"
 #import "LocalDataHelper.h"
 
+static BOOL JCIsPrinterConnected(void) {
+    int connectionState = [JCAPI isConnectingState];
+    NSString *printerName = [JCAPI connectingPrinterName];
+    BOOL isConnected = connectionState != 0 || printerName.length > 0;
+    NSLog(@"[Niimbot] connectionState=%d, printerName=%@, connected=%@",
+          connectionState,
+          printerName ?: @"<nil>",
+          isConnected ? @"YES" : @"NO");
+    return isConnected;
+}
+
 @implementation PrintHelper
 
 - (void)onDisconnect:(FlutterResult)result {
-    if ([JCAPI isConnectingState] == 0) {
+    if (!JCIsPrinterConnected()) {
         result(@(NO));
         return;
     }
@@ -20,7 +31,7 @@
 }
 
 - (void)isConnected:(FlutterResult)result {
-    result(@([JCAPI isConnectingState] != 0));
+    result(@(JCIsPrinterConnected()));
 }
 
 - (void)onStartPrintText:(FlutterMethodCall *)call result:(FlutterResult)result {

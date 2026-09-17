@@ -16,6 +16,12 @@ static BOOL JCPrintInProgress = NO;
 
 typedef BOOL (^JCDrawingBlock)(void);
 
+static BOOL JCIsPrinterConnected(void) {
+    int connectionState = [JCAPI isConnectingState];
+    NSString *printerName = [JCAPI connectingPrinterName];
+    return connectionState != 0 || printerName.length > 0;
+}
+
 @implementation PrintUtility
 
 - (NSString *)printErrorMessage:(int)code {
@@ -66,7 +72,8 @@ typedef BOOL (^JCDrawingBlock)(void);
                          rotate:0
                       fontArray:@[JCDefaultFontFile]];
         NSInteger totalLineCount = 0;
-        for (PrintLabelModel *model in models) {
+        for (NSInteger index = 0; index < models.count; index++) {
+            PrintLabelModel *model = models[index];
             NSInteger lineCount = [model.text
                 componentsSeparatedByCharactersInSet:
                     [NSCharacterSet newlineCharacterSet]].count;
@@ -80,8 +87,10 @@ typedef BOOL (^JCDrawingBlock)(void);
         );
         float contentHeight = lineHeight * totalLineCount;
         float currentY = MAX((JCLabelHeight - contentHeight) / 2.0f, 0.0f);
+        BOOL allDrawsReportedSuccess = YES;
 
-        for (PrintLabelModel *model in models) {
+        for (NSInteger index = 0; index < models.count; index++) {
+            PrintLabelModel *model = models[index];
             NSInteger lineCount = [model.text
                 componentsSeparatedByCharactersInSet:
                     [NSCharacterSet newlineCharacterSet]].count;
@@ -101,11 +110,22 @@ typedef BOOL (^JCDrawingBlock)(void);
                               withLineSpacing:1
                                 withFontStyle:@[@NO, @NO, @NO, @NO]];
             if (!drawn) {
-                return NO;
+                NSLog(@"[Niimbot] drawLableText failed: index=%ld, length=%lu, "
+                      @"x=%.2f, y=%.2f, width=%.2f, height=%.2f, font=%@, "
+                      @"fontSize=%.2f",
+                      (long)index,
+                      (unsigned long)model.text.length,
+                      JCTextHorizontalPadding,
+                      currentY,
+                      JCLabelWidth - (JCTextHorizontalPadding * 2.0f),
+                      textBoxHeight,
+                      defaultFontName,
+                      model.fontSize / 4.5);
+                allDrawsReportedSuccess = NO;
             }
             currentY += textBoxHeight;
         }
-        return YES;
+        return allDrawsReportedSuccess;
     } result:result];
 }
 
@@ -132,7 +152,7 @@ typedef BOOL (^JCDrawingBlock)(void);
 
 - (void)startPrintWithDrawingBlock:(JCDrawingBlock)drawingBlock
                              result:(FlutterResult)result {
-    if ([JCAPI isConnectingState] == 0) {
+    if (!JCIsPrinterConnected()) {
         result([FlutterError errorWithCode:errorPrint
                                    message:@"Printer not connected"
                                    details:nil]);
@@ -201,6 +221,28 @@ typedef BOOL (^JCDrawingBlock)(void);
     }
     [JCAPI setPrintWithCache:YES];
 
+    // SDKDemoOC renders the drawing board and generates its JSON before
+    // starting the physical print job. Rendering inside startJob's callback
+    // can make drawLableText return NO on iOS even though font setup succeeds.
+    NSString *labelJson = nil;
+    @try {
+        // SDKDemoOC logs individual draw return values but still calls
+        // GenerateLableJson. Some JCAPI versions report NO even when the
+        // drawing command was accepted, so the generated JSON is the reliable
+        // success signal here.
+        BOOL drawingReportedSuccess = drawingBlock();
+        NSLog(@"[Niimbot] drawing reported success=%@",
+              drawingReportedSuccess ? @"YES" : @"NO");
+        labelJson = [JCAPI GenerateLableJson];
+    } @catch (NSException *exception) {
+        complete(NO, exception.reason ?: @"Unable to render label content");
+        return;
+    }
+    if (labelJson.length == 0) {
+        complete(NO, @"Unable to generate label data");
+        return;
+    }
+
     [JCAPI getPrintingErrorInfo:^(NSString *printInfo) {
         complete(NO, [self printErrorMessage:printInfo.intValue]);
     }];
@@ -222,11 +264,7 @@ typedef BOOL (^JCDrawingBlock)(void);
             complete(NO, @"Unable to start print job");
             return;
         }
-        if (!drawingBlock()) {
-            complete(NO, @"Unable to draw label content");
-            return;
-        }
-        [JCAPI commit:[JCAPI GenerateLableJson]
+        [JCAPI commit:labelJson
           withOnePageNumbers:1
           withComplete:^(BOOL committed) {
             if (!committed) {
