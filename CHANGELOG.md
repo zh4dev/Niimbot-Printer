@@ -2,7 +2,7 @@
 
 All notable changes to `niimbot_print` will be documented here.
 
-## [Unreleased]
+## 0.1.3
 
 ### Fixed
 

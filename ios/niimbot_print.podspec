@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'niimbot_print'
-  s.version          = '0.1.2'
+  s.version          = '0.1.3'
   s.summary          = 'Print text labels and QR codes with Niimbot printers.'
   s.description      = <<-DESC
 Flutter integration for supported Niimbot Bluetooth label printers.

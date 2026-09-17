@@ -24,6 +24,7 @@ import com.zh4dev.niimbot_print.Utility.PrintUtility;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadFactory;
@@ -79,18 +80,7 @@ public class PrintHelper {
                 return;
             }
             try {
-                boolean supportedType = device.getType() == BluetoothDevice.DEVICE_TYPE_CLASSIC
-                        || device.getType() == BluetoothDevice.DEVICE_TYPE_DUAL;
-                if (!supportedType) {
-                    return;
-                }
-                String address = device.getAddress();
-                String model = new BlueDeviceInfoModel(
-                        device.getName(),
-                        address,
-                        device.getBondState()
-                ).toMap();
-                scanResults.add(address, model);
+                addDeviceToScanResults(device);
             } catch (SecurityException error) {
                 Log.e(TAG, "Missing permission while reading scan result", error);
             }
@@ -144,6 +134,7 @@ public class PrintHelper {
                     ContextCompat.RECEIVER_EXPORTED
             );
             receiverRegistered = true;
+            addBondedDevicesToScanResults();
             if (bluetoothAdapter.isDiscovering()) {
                 bluetoothAdapter.cancelDiscovery();
             }
@@ -155,6 +146,40 @@ public class PrintHelper {
         } catch (SecurityException error) {
             failScan(error.getMessage());
         }
+    }
+
+    private void addBondedDevicesToScanResults() {
+        try {
+            Set<BluetoothDevice> bondedDevices = bluetoothAdapter.getBondedDevices();
+            if (bondedDevices == null) {
+                return;
+            }
+            for (BluetoothDevice device : bondedDevices) {
+                addDeviceToScanResults(device);
+            }
+        } catch (SecurityException error) {
+            Log.e(TAG, "Missing permission while reading bonded devices", error);
+        }
+    }
+
+    private void addDeviceToScanResults(BluetoothDevice device) {
+        if (device == null) {
+            return;
+        }
+
+        boolean supportedType = device.getType() == BluetoothDevice.DEVICE_TYPE_CLASSIC
+                || device.getType() == BluetoothDevice.DEVICE_TYPE_DUAL;
+        if (!supportedType) {
+            return;
+        }
+
+        String address = device.getAddress();
+        String model = new BlueDeviceInfoModel(
+                device.getName(),
+                address,
+                device.getBondState()
+        ).toMap();
+        scanResults.add(address, model);
     }
 
     private void finishScan() {
