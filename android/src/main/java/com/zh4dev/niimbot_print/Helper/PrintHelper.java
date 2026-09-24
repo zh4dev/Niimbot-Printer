@@ -18,12 +18,14 @@ import com.zh4dev.niimbot_print.Constant.KeyConstant;
 import com.zh4dev.niimbot_print.Constant.MessageConstant;
 import com.zh4dev.niimbot_print.Constant.PrintConstant;
 import com.zh4dev.niimbot_print.Model.BlueDeviceInfoModel;
+import com.zh4dev.niimbot_print.Model.LabelLayoutModel;
 import com.zh4dev.niimbot_print.Model.PrintLabelModel;
 import com.zh4dev.niimbot_print.Model.PrintQrCodeModel;
 import com.zh4dev.niimbot_print.Utility.PrintUtility;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -316,30 +318,38 @@ public class PrintHelper {
     }
 
     @SuppressWarnings("unchecked")
-    public void onStartPrintText(@NonNull MethodCall call, @NonNull Result result) {
-        List<String> values = (List<String>) call.arguments;
+    public void onStartPrint(@NonNull MethodCall call, @NonNull Result result) {
+        Object arguments = call.arguments;
+        List<String> values;
+        LabelLayoutModel layout = new LabelLayoutModel();
+        if (arguments instanceof Map) {
+            Map<String, Object> payload = (Map<String, Object>) arguments;
+            values = (List<String>) payload.get("items");
+            layout = layout.fromMap(payload.get("layout"));
+        } else {
+            values = (List<String>) arguments;
+        }
         if (values == null || values.isEmpty()) {
             result.error(KeyConstant.emptyText, MessageConstant.pleaseInputText, null);
             return;
         }
-        List<PrintLabelModel> models = new ArrayList<>();
-        for (String value : values) {
-            models.add(new PrintLabelModel().fromMap(value));
-        }
-        printUtility.printLabel(models, result);
+        printUtility.printElements(values, layout, result);
     }
 
-    public void onStartPrintQrCode(@NonNull MethodCall call, @NonNull Result result) {
-        if (call.arguments == null) {
+    public void generatePreview(@NonNull MethodCall call, @NonNull Result result) {
+        Object arguments = call.arguments;
+        if (!(arguments instanceof Map)) {
             result.error(KeyConstant.emptyText, MessageConstant.pleaseInputText, null);
             return;
         }
-        PrintQrCodeModel qrCode = PrintQrCodeModel.fromJson(call.arguments.toString());
-        if (qrCode.getData() == null || qrCode.getData().trim().isEmpty()) {
+        Map<String, Object> payload = (Map<String, Object>) arguments;
+        List<String> values = (List<String>) payload.get("items");
+        LabelLayoutModel layout = new LabelLayoutModel().fromMap(payload.get("layout"));
+        if (values == null || values.isEmpty()) {
             result.error(KeyConstant.emptyText, MessageConstant.pleaseInputText, null);
             return;
         }
-        printUtility.printQrCode(qrCode, result);
+        printUtility.generatePreview(values, layout, result);
     }
 
     public void dispose() {

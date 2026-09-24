@@ -20,10 +20,10 @@
     [printHelper onStartScan:call result:result];
   } else if ([onStartConnect isEqualToString:call.method]) {
     [printHelper onStartConnect:call result:result];
-  } else if ([onStartPrintText isEqualToString:call.method]) {
-    [printHelper onStartPrintText:call result:result];
-  } else if ([onStartPrintQrCode isEqualToString:call.method]) {
-    [printHelper onStartPrintQrCode:call result:result];
+  } else if ([onStartPrint isEqualToString:call.method]) {
+    [printHelper onStartPrint:call result:result];
+  } else if ([generatePreview isEqualToString:call.method]) {
+    [printHelper generatePreview:call result:result];
   } else if ([onDisconnect isEqualToString:call.method]) {
     [printHelper onDisconnect:result];
   } else if ([isConnected isEqualToString:call.method]) {

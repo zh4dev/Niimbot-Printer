@@ -35,11 +35,11 @@ public class NiimbotPrintPlugin implements FlutterPlugin, MethodCallHandler {
       case PluginConstant.onStartConnect:
         printHelper.onStartConnect(call, result);
         break;
-      case PluginConstant.onStartPrintText:
-        printHelper.onStartPrintText(call, result);
+      case PluginConstant.onStartPrint:
+        printHelper.onStartPrint(call, result);
         break;
-      case PluginConstant.onStartPrintQrCode:
-        printHelper.onStartPrintQrCode(call, result);
+      case PluginConstant.generatePreview:
+        printHelper.generatePreview(call, result);
         break;
       case PluginConstant.onDisconnect:
         printHelper.onDisconnect(result);

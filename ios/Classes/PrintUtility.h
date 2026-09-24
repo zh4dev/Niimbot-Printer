@@ -5,7 +5,15 @@
 
 @interface PrintUtility : NSObject
 
-- (void)printLabel:(NSArray<PrintLabelModel *> *)printLabelModels result:(FlutterResult)result;
+- (void)printLabel:(NSArray<PrintLabelModel *> *)printLabelModels
+             layout:(NSDictionary *)layout
+             result:(FlutterResult)result;
 - (void)printQrCode:(PrintQrCodeModel *)qrCode result:(FlutterResult)result;
+- (void)printElements:(NSArray<NSDictionary *> *)elements
+                layout:(NSDictionary *)layout
+                result:(FlutterResult)result;
+- (void)generatePreview:(NSArray<NSDictionary *> *)elements
+                  layout:(NSDictionary *)layout
+                  result:(FlutterResult)result;
 
 @end

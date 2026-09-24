@@ -7,7 +7,7 @@
 - (void)onDisconnect:(FlutterResult)result;
 - (void)onStartScan:(FlutterMethodCall*)call result:(FlutterResult)result;
 - (void)onStartConnect:(FlutterMethodCall*)call result:(FlutterResult)result;
-- (void)onStartPrintText:(FlutterMethodCall*)call result:(FlutterResult)result;
-- (void)onStartPrintQrCode:(FlutterMethodCall*)call result:(FlutterResult)result;
+- (void)onStartPrint:(FlutterMethodCall*)call result:(FlutterResult)result;
+- (void)generatePreview:(FlutterMethodCall*)call result:(FlutterResult)result;
 
 @end

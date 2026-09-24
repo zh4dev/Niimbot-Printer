@@ -34,10 +34,16 @@ static BOOL JCIsPrinterConnected(void) {
     result(@(JCIsPrinterConnected()));
 }
 
-- (void)onStartPrintText:(FlutterMethodCall *)call result:(FlutterResult)result {
-    NSArray *values = [call.arguments isKindOfClass:[NSArray class]]
+- (void)onStartPrint:(FlutterMethodCall *)call result:(FlutterResult)result {
+    NSDictionary *payload = [call.arguments isKindOfClass:[NSDictionary class]]
         ? call.arguments
-        : @[];
+        : nil;
+    NSArray *values = payload != nil
+        ? ([payload[@"items"] isKindOfClass:[NSArray class]] ? payload[@"items"] : @[])
+        : ([call.arguments isKindOfClass:[NSArray class]] ? call.arguments : @[]);
+    NSDictionary *layout = [payload[@"layout"] isKindOfClass:[NSDictionary class]]
+        ? payload[@"layout"]
+        : @{};
     if (values.count == 0) {
         result([FlutterError errorWithCode:emptyText
                                    message:@"Print data cannot be empty"
@@ -45,36 +51,43 @@ static BOOL JCIsPrinterConnected(void) {
         return;
     }
 
-    NSMutableArray<PrintLabelModel *> *models = [NSMutableArray array];
+    NSMutableArray<NSDictionary *> *elements = [NSMutableArray array];
     for (id value in values) {
         if ([value isKindOfClass:[NSString class]]) {
-            [models addObject:[PrintLabelModel fromJson:value]];
+            NSData *data = [value dataUsingEncoding:NSUTF8StringEncoding];
+            NSDictionary *element = [NSJSONSerialization JSONObjectWithData:data
+                                                                      options:0
+                                                                        error:nil];
+            if ([element isKindOfClass:[NSDictionary class]]) [elements addObject:element];
         }
     }
-    if (models.count == 0) {
+    if (elements.count == 0) {
         result([FlutterError errorWithCode:emptyText
                                    message:@"Print data cannot be empty"
                                    details:nil]);
         return;
     }
-    [[[PrintUtility alloc] init] printLabel:models result:result];
+    [[[PrintUtility alloc] init] printElements:elements layout:layout result:result];
 }
 
-- (void)onStartPrintQrCode:(FlutterMethodCall *)call result:(FlutterResult)result {
-    if (![call.arguments isKindOfClass:[NSString class]]) {
+- (void)generatePreview:(FlutterMethodCall *)call result:(FlutterResult)result {
+    NSDictionary *payload = [call.arguments isKindOfClass:[NSDictionary class]] ? call.arguments : nil;
+    NSArray *values = [payload[@"items"] isKindOfClass:[NSArray class]] ? payload[@"items"] : @[];
+    NSDictionary *layout = [payload[@"layout"] isKindOfClass:[NSDictionary class]] ? payload[@"layout"] : @{};
+    NSMutableArray<NSDictionary *> *elements = [NSMutableArray array];
+    for (id value in values) {
+        if (![value isKindOfClass:[NSString class]]) continue;
+        NSData *data = [value dataUsingEncoding:NSUTF8StringEncoding];
+        NSDictionary *element = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        if ([element isKindOfClass:[NSDictionary class]]) [elements addObject:element];
+    }
+    if (elements.count == 0) {
         result([FlutterError errorWithCode:emptyText
-                                   message:@"QR code data cannot be empty"
+                                   message:@"Print data cannot be empty"
                                    details:nil]);
         return;
     }
-    PrintQrCodeModel *model = [PrintQrCodeModel fromJson:call.arguments];
-    if (model.data.length == 0 || model.size <= 0 || model.size > 30) {
-        result([FlutterError errorWithCode:emptyText
-                                   message:@"Invalid QR code data or size"
-                                   details:nil]);
-        return;
-    }
-    [[[PrintUtility alloc] init] printQrCode:model result:result];
+    [[[PrintUtility alloc] init] generatePreview:elements layout:layout result:result];
 }
 
 - (void)onStartConnect:(FlutterMethodCall *)call result:(FlutterResult)result {

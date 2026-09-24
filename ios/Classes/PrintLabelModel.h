@@ -4,6 +4,15 @@
 
 @property (nonatomic, strong) NSString *text;
 @property (nonatomic, assign) double fontSize;
+@property (nonatomic, strong) NSString *fontFamily;
+@property (nonatomic, strong) NSString *fontStyle;
+@property (nonatomic, strong) NSString *sizingMode;
+@property (nonatomic, assign) double minFontSize;
+@property (nonatomic, assign) double maxFontSize;
+@property (nonatomic, assign) NSInteger maxLines;
+@property (nonatomic, assign) double fontSizeOffset;
+
+- (NSArray<NSNumber *> *)fontStyles;
 
 - (instancetype)init;
 - (instancetype)initWithText:(NSString *)text fontSize:(double)fontSize;

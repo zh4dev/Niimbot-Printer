@@ -5,6 +5,8 @@
 #import "PrinterConfigurationModel.h"
 #import "LocalDataHelper.h"
 #import "KeyConstant.h"
+#import <math.h>
+#import <float.h>
 
 static const float JCLabelWidth = 50.0f;
 static const float JCLabelHeight = 30.0f;
@@ -63,70 +65,319 @@ static BOOL JCIsPrinterConnected(void) {
 }
 
 - (void)printLabel:(NSArray<PrintLabelModel *> *)models
+             layout:(NSDictionary *)layout
              result:(FlutterResult)result {
     [self startPrintWithDrawingBlock:^BOOL {
-        [JCAPI initDrawingBoard:JCLabelWidth
-                     withHeight:JCLabelHeight
-            withHorizontalShift:0
-              withVerticalShift:0
-                         rotate:0
-                      fontArray:@[JCDefaultFontFile]];
-        NSInteger totalLineCount = 0;
-        for (NSInteger index = 0; index < models.count; index++) {
-            PrintLabelModel *model = models[index];
-            NSInteger lineCount = [model.text
-                componentsSeparatedByCharactersInSet:
-                    [NSCharacterSet newlineCharacterSet]].count;
-            totalLineCount += MAX(lineCount, 1);
-        }
-
-        float defaultLineHeight = JCLabelHeight / 5.0f;
-        float lineHeight = MIN(
-            defaultLineHeight,
-            JCLabelHeight / (float)MAX(totalLineCount, 1)
-        );
-        float contentHeight = lineHeight * totalLineCount;
-        float currentY = MAX((JCLabelHeight - contentHeight) / 2.0f, 0.0f);
-        BOOL allDrawsReportedSuccess = YES;
-
-        for (NSInteger index = 0; index < models.count; index++) {
-            PrintLabelModel *model = models[index];
-            NSInteger lineCount = [model.text
-                componentsSeparatedByCharactersInSet:
-                    [NSCharacterSet newlineCharacterSet]].count;
-            float textBoxHeight = lineHeight * MAX(lineCount, 1);
-            BOOL drawn = [JCAPI drawLableText:JCTextHorizontalPadding
-                                        withY:currentY
-                                    withWidth:JCLabelWidth - (JCTextHorizontalPadding * 2.0f)
-                                   withHeight:textBoxHeight
-                                   withString:model.text
-                               withFontFamily:defaultFontName
-                                 withFontSize:model.fontSize / 4.5
-                                   withRotate:0
-                    withTextAlignHorizonral:1
-                       withTextAlignVertical:1
-                                 withLineMode:6
-                            withLetterSpacing:0
-                              withLineSpacing:1
-                                withFontStyle:@[@NO, @NO, @NO, @NO]];
-            if (!drawn) {
-                NSLog(@"[Niimbot] drawLableText failed: index=%ld, length=%lu, "
-                      @"x=%.2f, y=%.2f, width=%.2f, height=%.2f, font=%@, "
-                      @"fontSize=%.2f",
-                      (long)index,
-                      (unsigned long)model.text.length,
-                      JCTextHorizontalPadding,
-                      currentY,
-                      JCLabelWidth - (JCTextHorizontalPadding * 2.0f),
-                      textBoxHeight,
-                      defaultFontName,
-                      model.fontSize / 4.5);
-                allDrawsReportedSuccess = NO;
-            }
-            currentY += textBoxHeight;
-        }
-        return allDrawsReportedSuccess;
+        return [self drawTextFlow:models layout:layout];
     } result:result];
+}
+
+- (void)printElements:(NSArray<NSDictionary *> *)elements
+                layout:(NSDictionary *)layout
+                result:(FlutterResult)result {
+    BOOL textFlowOnly = YES;
+    NSMutableArray<PrintLabelModel *> *textModels = [NSMutableArray array];
+    for (NSDictionary *element in elements) {
+        NSString *type = [element[@"type"] isKindOfClass:[NSString class]] ? element[@"type"] : @"text";
+        if (![type isEqualToString:@"text"] || [element[@"frame"] isKindOfClass:[NSDictionary class]]) {
+            textFlowOnly = NO;
+            break;
+        }
+        NSData *data = [NSJSONSerialization dataWithJSONObject:element options:0 error:nil];
+        NSString *json = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+        [textModels addObject:[PrintLabelModel fromJson:json]];
+    }
+    if (textFlowOnly) {
+        [self printLabel:textModels layout:layout result:result];
+        return;
+    }
+    [self startPrintWithDrawingBlock:^BOOL {
+        return [self drawElements:elements layout:layout];
+    } result:result];
+}
+
+- (void)generatePreview:(NSArray<NSDictionary *> *)elements
+                  layout:(NSDictionary *)layout
+                  result:(FlutterResult)result {
+    NSString *resourcePath = [NSBundle mainBundle].resourcePath;
+    NSError *fontError = nil;
+    [JCAPI initImageProcessing:resourcePath error:&fontError];
+    if (fontError != nil) {
+        result([FlutterError errorWithCode:errorPrint
+                                   message:fontError.localizedDescription
+                                   details:nil]);
+        return;
+    }
+    @try {
+        BOOL textFlowOnly = YES;
+        NSMutableArray<PrintLabelModel *> *models = [NSMutableArray array];
+        for (NSDictionary *element in elements) {
+            NSString *type = [element[@"type"] isKindOfClass:[NSString class]] ? element[@"type"] : @"text";
+            if (![type isEqualToString:@"text"] || [element[@"frame"] isKindOfClass:[NSDictionary class]]) {
+                textFlowOnly = NO;
+                break;
+            }
+            NSData *data = [NSJSONSerialization dataWithJSONObject:element options:0 error:nil];
+            NSString *json = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+            [models addObject:[PrintLabelModel fromJson:json]];
+        }
+        if (textFlowOnly) {
+            [self drawTextFlow:models layout:layout];
+        } else {
+            [self drawElements:elements layout:layout];
+        }
+        NSString *labelJson = [JCAPI GenerateLableJson];
+        PrinterConfigurationModel *configuration = [[[LocalDataHelper alloc] init] getPrinterModel];
+        NSError *previewError = nil;
+        UIImage *image = [JCAPI generatePrintPreviewImage:labelJson
+                                          displayMultiple:8.0f
+                                            printMultiple:configuration.printMultiple
+                                    printPreviewImageType:1
+                                                    error:&previewError];
+        NSData *png = image != nil ? UIImagePNGRepresentation(image) : nil;
+        if (png.length == 0) {
+            result([FlutterError errorWithCode:errorPrint
+                                       message:previewError.localizedDescription ?: @"Unable to generate print preview"
+                                       details:nil]);
+            return;
+        }
+        result([FlutterStandardTypedData typedDataWithBytes:png]);
+    } @catch (NSException *exception) {
+        result([FlutterError errorWithCode:errorPrint
+                                   message:exception.reason ?: @"Unable to generate print preview"
+                                   details:nil]);
+    }
+}
+
+- (BOOL)drawElements:(NSArray<NSDictionary *> *)elements layout:(NSDictionary *)layout {
+    float physicalWidth = [layout[@"width"] floatValue] > 0 ? [layout[@"width"] floatValue] : JCLabelWidth;
+    float physicalHeight = [layout[@"height"] floatValue] > 0 ? [layout[@"height"] floatValue] : JCLabelHeight;
+    BOOL landscape = [layout[@"orientation"] isEqualToString:@"landscape"];
+    float canvasWidth = landscape ? physicalHeight : physicalWidth;
+    float canvasHeight = landscape ? physicalWidth : physicalHeight;
+    float padding = layout[@"padding"] != nil ? MAX([layout[@"padding"] floatValue], 0.0f) : 2.0f;
+    [JCAPI initDrawingBoard:canvasWidth withHeight:canvasHeight
+        withHorizontalShift:0 withVerticalShift:0 rotate:(landscape ? 90 : 0)
+        fontArray:@[JCDefaultFontFile]];
+    BOOL success = YES;
+    for (NSDictionary *element in elements) {
+        NSString *type = element[@"type"] ?: @"text";
+        NSDictionary *frame = [element[@"frame"] isKindOfClass:[NSDictionary class]] ? element[@"frame"] : nil;
+        float x, y, width, height;
+        if (frame != nil) {
+            x = [frame[@"x"] floatValue];
+            y = [frame[@"y"] floatValue];
+            width = [frame[@"width"] floatValue];
+            height = [frame[@"height"] floatValue];
+        } else if ([type isEqualToString:@"qrCode"] || [type isEqualToString:@"barcode"]) {
+            float availableWidth = MAX(canvasWidth - padding * 2.0f, 1.0f);
+            float availableHeight = MAX(canvasHeight - padding * 2.0f, 1.0f);
+            NSNumber *requestedWidth = [element[@"width"] isKindOfClass:[NSNumber class]] ? element[@"width"] : nil;
+            NSNumber *requestedHeight = [element[@"height"] isKindOfClass:[NSNumber class]] ? element[@"height"] : nil;
+            if ([type isEqualToString:@"qrCode"]) {
+                float defaultSize = MIN(availableWidth, availableHeight) * 0.7f;
+                width = requestedWidth != nil ? requestedWidth.floatValue
+                    : (requestedHeight != nil ? requestedHeight.floatValue : defaultSize);
+                height = requestedHeight != nil ? requestedHeight.floatValue : width;
+            } else {
+                width = requestedWidth != nil ? requestedWidth.floatValue : availableWidth;
+                height = requestedHeight != nil ? requestedHeight.floatValue
+                    : MIN(MAX(canvasHeight * 0.28f, 10.0f), availableHeight);
+            }
+            width = MIN(MAX(width, 1.0f), availableWidth);
+            height = MIN(MAX(height, 1.0f), availableHeight);
+            NSString *horizontal = element[@"horizontalAlignment"] ?: @"center";
+            NSString *vertical = element[@"verticalAlignment"] ?: @"center";
+            x = [horizontal isEqualToString:@"start"] ? padding
+                : ([horizontal isEqualToString:@"end"] ? canvasWidth - padding - width
+                    : (canvasWidth - width) / 2.0f);
+            y = [vertical isEqualToString:@"start"] ? padding
+                : ([vertical isEqualToString:@"end"] ? canvasHeight - padding - height
+                    : (canvasHeight - height) / 2.0f);
+        } else {
+            @throw [NSException exceptionWithName:@"InvalidPrintElement"
+                reason:[NSString stringWithFormat:@"An explicit frame is required for %@ elements", type]
+                userInfo:nil];
+        }
+        int rotation = [element[@"rotation"] intValue];
+        BOOL drawn = YES;
+        if ([type isEqualToString:@"text"]) {
+            NSData *data = [NSJSONSerialization dataWithJSONObject:element options:0 error:nil];
+            NSString *json = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+            PrintLabelModel *model = [PrintLabelModel fromJson:json];
+            float fontSize = [model.sizingMode isEqualToString:@"autoFit"]
+                ? [self resolvedFontSize:model widthMm:width heightMm:height]
+                : MAX(model.fontSize, 1.0f);
+            drawn = [JCAPI drawLableText:x withY:y withWidth:width withHeight:height
+                withString:model.text withFontFamily:model.fontFamily
+                withFontSize:fontSize / 4.5f withRotate:rotation
+                withTextAlignHorizonral:1 withTextAlignVertical:1 withLineMode:6
+                withLetterSpacing:0 withLineSpacing:1 withFontStyle:model.fontStyles];
+        } else if ([type isEqualToString:@"qrCode"]) {
+            drawn = [JCAPI drawLableQrCode:x withY:y withWidth:width withHeight:height
+                withString:element[@"data"] ?: @"" withRotate:rotation
+                withCodeType:[element[@"codeType"] intValue] ?: 31];
+        } else if ([type isEqualToString:@"barcode"]) {
+            drawn = [JCAPI drawLableBarCode:x withY:y withWidth:width withHeight:height
+                withString:element[@"data"] ?: @""
+                withFontSize:[element[@"fontSize"] floatValue]
+                withRotate:rotation withCodeType:[element[@"barcodeType"] intValue]
+                withTextHeight:[element[@"textHeight"] floatValue]
+                withTextPosition:[element[@"textPosition"] intValue]];
+        } else if ([type isEqualToString:@"line"]) {
+            NSArray *dash = [element[@"dashWidth"] isKindOfClass:[NSArray class]]
+                ? element[@"dashWidth"] : @[@1, @1];
+            drawn = [JCAPI DrawLableLine:x withY:y withWidth:width withHeight:height
+                withRotate:rotation withLineType:MAX([element[@"lineType"] intValue], 1)
+                withDashWidth:dash];
+        } else if ([type isEqualToString:@"image"]) {
+            drawn = [JCAPI DrawLableImage:x withY:y withWidth:width withHeight:height
+                withImageData:element[@"imageData"] ?: @"" withRotate:rotation
+                withImageProcessingType:MAX([element[@"processingType"] intValue], 1)
+                withImageProcessingValue:[element[@"threshold"] floatValue]];
+        } else {
+            @throw [NSException exceptionWithName:@"UnsupportedPrintElement"
+                reason:[NSString stringWithFormat:@"Unsupported print element: %@", type]
+                userInfo:nil];
+        }
+        success = success && drawn;
+    }
+    return success;
+}
+
+- (BOOL)drawTextFlow:(NSArray<PrintLabelModel *> *)models layout:(NSDictionary *)layout {
+    float physicalWidth = [layout[@"width"] floatValue] > 0 ? [layout[@"width"] floatValue] : JCLabelWidth;
+    float physicalHeight = [layout[@"height"] floatValue] > 0 ? [layout[@"height"] floatValue] : JCLabelHeight;
+    BOOL landscape = [layout[@"orientation"] isEqualToString:@"landscape"];
+    float canvasWidth = landscape ? physicalHeight : physicalWidth;
+    float canvasHeight = landscape ? physicalWidth : physicalHeight;
+    float padding = layout[@"padding"] != nil ? MAX([layout[@"padding"] floatValue], 0.0f) : 2.0f;
+    float availableWidth = MAX(canvasWidth - padding * 2.0f, 1.0f);
+    float availableHeight = MAX(canvasHeight - padding * 2.0f, 1.0f);
+    [JCAPI initDrawingBoard:canvasWidth withHeight:canvasHeight withHorizontalShift:0
+        withVerticalShift:0 rotate:(landscape ? 90 : 0) fontArray:@[JCDefaultFontFile]];
+    float maxBoxHeight = availableHeight / MAX(models.count, 1);
+    float base = [self resolvedSharedAutoFontSize:models widthMm:availableWidth heightMm:maxBoxHeight];
+    NSMutableArray<NSNumber *> *sizes = [NSMutableArray array];
+    NSMutableArray<NSNumber *> *heights = [NSMutableArray array];
+    float contentHeight = 0;
+    for (PrintLabelModel *model in models) {
+        float size = [model.sizingMode isEqualToString:@"autoFit"]
+            ? base + model.fontSizeOffset : MAX(model.fontSize, 1.0f);
+        NSInteger lines = [self estimatedLineCount:model fontSize:size widthMm:availableWidth];
+        float height = MIN(maxBoxHeight, MAX(size / 4.5f * 1.35f * lines, 2.0f));
+        [sizes addObject:@(size)];
+        [heights addObject:@(height)];
+        contentHeight += height;
+    }
+    float y = [layout[@"verticalAlignment"] isEqualToString:@"start"]
+        ? padding
+        : ([layout[@"verticalAlignment"] isEqualToString:@"end"]
+            ? canvasHeight - padding - contentHeight
+            : (canvasHeight - contentHeight) / 2.0f);
+    int horizontalAlignment = [layout[@"horizontalAlignment"] isEqualToString:@"start"]
+        ? 0 : ([layout[@"horizontalAlignment"] isEqualToString:@"end"] ? 2 : 1);
+    BOOL success = YES;
+    for (NSInteger index = 0; index < models.count; index++) {
+        PrintLabelModel *model = models[index];
+        float size = sizes[index].floatValue;
+        float height = heights[index].floatValue;
+        BOOL drawn = [JCAPI drawLableText:padding withY:y withWidth:availableWidth withHeight:height
+            withString:model.text withFontFamily:model.fontFamily withFontSize:size / 4.5f
+            withRotate:0 withTextAlignHorizonral:horizontalAlignment withTextAlignVertical:1
+            withLineMode:6 withLetterSpacing:0 withLineSpacing:1 withFontStyle:model.fontStyles];
+        success = success && drawn;
+        y += height;
+    }
+    return success;
+}
+
+- (float)resolvedFontSize:(PrintLabelModel *)model widthMm:(float)width heightMm:(float)height {
+    float candidate = model.maxFontSize;
+    while (candidate > model.minFontSize) {
+        NSInteger lines = [self estimatedLineCount:model fontSize:candidate widthMm:width];
+        if (lines <= model.maxLines && candidate / 4.5f * 1.35f * lines <= height) return candidate;
+        candidate -= 0.5f;
+    }
+    return model.minFontSize;
+}
+
+- (float)resolvedSharedAutoFontSize:(NSArray<PrintLabelModel *> *)models
+                            widthMm:(float)widthMm
+                           heightMm:(float)heightMm {
+    float minimumBase = 1.0f;
+    float maximumBase = FLT_MAX;
+    BOOL hasAutoFit = NO;
+    for (PrintLabelModel *model in models) {
+        if (![model.sizingMode isEqualToString:@"autoFit"]) continue;
+        hasAutoFit = YES;
+        minimumBase = MAX(minimumBase, model.minFontSize - model.fontSizeOffset);
+        maximumBase = MIN(maximumBase, model.maxFontSize - model.fontSizeOffset);
+    }
+    if (!hasAutoFit) return 0.0f;
+    if (maximumBase < minimumBase) maximumBase = minimumBase;
+
+    float candidate = maximumBase;
+    while (candidate > minimumBase &&
+           ![self allAutoTextFits:models
+                     baseFontSize:candidate
+                          widthMm:widthMm
+                         heightMm:heightMm]) {
+        candidate -= 0.5f;
+    }
+    if (![self allAutoTextFits:models
+                  baseFontSize:minimumBase
+                       widthMm:widthMm
+                      heightMm:heightMm]) {
+        @throw [NSException
+            exceptionWithName:@"NiimbotTextDoesNotFit"
+                       reason:@"Text does not fit within the label at the minimum font size"
+                     userInfo:nil];
+    }
+    return MAX(candidate, minimumBase);
+}
+
+- (BOOL)allAutoTextFits:(NSArray<PrintLabelModel *> *)models
+           baseFontSize:(float)baseFontSize
+                widthMm:(float)widthMm
+               heightMm:(float)heightMm {
+    for (PrintLabelModel *model in models) {
+        if (![model.sizingMode isEqualToString:@"autoFit"]) continue;
+        float fontSize = baseFontSize + model.fontSizeOffset;
+        NSInteger lines = [self estimatedLineCount:model
+                                          fontSize:fontSize
+                                           widthMm:widthMm];
+        float height = fontSize / 4.5f * 1.35f * lines;
+        if (fontSize < model.minFontSize ||
+            fontSize > model.maxFontSize ||
+            lines > MAX(model.maxLines, 1) ||
+            height > heightMm) {
+            return NO;
+        }
+    }
+    return YES;
+}
+
+- (NSInteger)estimatedLineCount:(PrintLabelModel *)model
+                       fontSize:(float)fontSize
+                        widthMm:(float)widthMm {
+    NSArray<NSString *> *explicitLines = [model.text
+        componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+    float fontMm = fontSize / 4.5f;
+    NSInteger totalLines = 0;
+    for (NSString *line in explicitLines) {
+        __block double weightedCharacters = 0.0;
+        [line enumerateSubstringsInRange:NSMakeRange(0, line.length)
+                                 options:NSStringEnumerationByComposedCharacterSequences
+                              usingBlock:^(NSString *substring, NSRange substringRange,
+                                           NSRange enclosingRange, BOOL *stop) {
+            unichar character = [substring characterAtIndex:0];
+            weightedCharacters += character > 0x7f ? 1.0 : 0.58;
+        }];
+        float estimatedWidth = weightedCharacters * fontMm;
+        totalLines += MAX(1, (NSInteger)ceil(estimatedWidth / MAX(widthMm, 1.0f)));
+    }
+    return totalLines;
 }
 
 - (void)printQrCode:(PrintQrCodeModel *)qrCode result:(FlutterResult)result {

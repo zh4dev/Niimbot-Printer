@@ -2,7 +2,53 @@
 
 All notable changes to `niimbot_print` will be documented here.
 
+## 0.3.0
+
+### Added
+
+- Added optional automatic width and height calculation for QR/matrix codes and barcodes.
+- Added independent horizontal and vertical alignment for automatically positioned codes.
+- Added optional code rotation while retaining explicit-frame positioning support.
+- Expanded the example app and README with text, QR, barcode, network/file/byte images, lines, raw pixels, mixed-label printing, and native preview tutorials.
+- Added `NiimbotRotation` so only native-supported rotations can be selected.
+- Added structured `NiimbotPrintException` errors with stable error codes and invalid-element indexes.
+- Added preflight validation for label bounds, QR proportions, common numeric barcode formats, code dimensions, and overlapping automatically positioned codes.
+- Added an interactive example playground for label size, orientation, optional dimensions, alignment, rotation, preview, and printing.
+
+## 0.2.1
+
+### Fixed
+
+- Corrected the native bold/italic flag order so `NiimbotFontStyle.bold` prints bold instead of italic on Android and iOS.
+
+## 0.2.0
+
+### Added
+
+- Added the unified `onStartPrint` API for mixed text, QR/matrix code, barcode, image, line, and raw-pixel elements.
+- Added images from bytes, local files, network URLs, and one-byte grayscale pixel buffers.
+- Added native PNG print previews through `generatePreview`, using the same Niimbot renderer as physical printing.
+
+### Removed
+
+- Removed the separate `onStartPrintText` and `onStartPrintQrCode` APIs in favor of `onStartPrint`.
+
+## 0.1.5
+
+### Added
+
+- Added per-text font styling through `NiimbotFontStyle`.
+- Added native Android and iOS support for normal, bold, italic, bold italic, underline, and strikethrough text.
+
 ## 0.1.4
+
+### Added
+
+- Added `50 x 30`, `50 x 80`, and `50 x 170` mm label-size presets plus arbitrary custom dimensions.
+- Added portrait and landscape canvas orientation with configurable padding and horizontal/vertical content alignment.
+- Added per-text font-family selection through the discoverable `NiimbotFontFamily` enum.
+- Added fixed and automatic font sizing with configurable minimum size, maximum size, and line limit.
+- Added shared auto-fit sizing with per-text offsets for consistent typographic hierarchy.
 
 ### Fixed
 
