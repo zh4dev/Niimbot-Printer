@@ -42,7 +42,7 @@ Add `niimbot_print` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  niimbot_print: ^0.3.0
+  niimbot_print: ^0.3.1
 ```
 
 Then install the dependency:
