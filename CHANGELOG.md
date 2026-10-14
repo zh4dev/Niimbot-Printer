@@ -2,7 +2,7 @@
 
 All notable changes to `niimbot_print` will be documented here.
 
-## Unreleased
+## 0.3.2
 
 - Move device/media policy into shared, configurable `NiimbotPrinterMediaProfile` data; add `usePrinterProfiles` to disable automatic correction.
 - Route legacy Android text printing through the unified renderer.
