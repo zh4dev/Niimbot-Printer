@@ -6,6 +6,7 @@
 @property (nonatomic, assign) double fontSize;
 @property (nonatomic, strong) NSString *fontFamily;
 @property (nonatomic, strong) NSString *fontStyle;
+@property (nonatomic, strong) NSString *textAlignment;
 @property (nonatomic, strong) NSString *sizingMode;
 @property (nonatomic, assign) double minFontSize;
 @property (nonatomic, assign) double maxFontSize;
@@ -13,6 +14,7 @@
 @property (nonatomic, assign) double fontSizeOffset;
 
 - (NSArray<NSNumber *> *)fontStyles;
+- (int)horizontalAlignmentWithFallback:(int)fallback;
 
 - (instancetype)init;
 - (instancetype)initWithText:(NSString *)text fontSize:(double)fontSize;

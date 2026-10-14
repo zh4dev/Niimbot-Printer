@@ -22,6 +22,7 @@ export 'model/print_qr_code_model.dart';
 export 'enum/niimbot_model_enum.dart';
 export 'enum/niimbot_font_family.dart';
 export 'enum/niimbot_font_style.dart';
+export 'enum/niimbot_text_alignment.dart';
 
 /// Callback invoked when a connect or print operation finishes.
 typedef NiimbotResultCallback = void Function(bool isSuccess, String message);
@@ -127,11 +128,14 @@ class NiimbotPrint {
     if (layout.size.width <= 0 ||
         layout.size.height <= 0 ||
         layout.padding < 0 ||
+        layout.textSpacing < 0 ||
+        !layout.horizontalCalibration.isFinite ||
+        layout.horizontalCalibration.abs() > layout.padding ||
         layout.padding * 2 >= logicalWidth ||
         layout.padding * 2 >= logicalHeight) {
       final error = NiimbotPrintException(
         code: NiimbotPrintErrorCode.invalidLabelSize,
-        message: 'Invalid label dimensions or padding',
+        message: 'Invalid label dimensions, padding, or text spacing',
       );
       onError?.call(error);
       onResult(false, error.message);
@@ -195,11 +199,14 @@ class NiimbotPrint {
     if (layout.size.width <= 0 ||
         layout.size.height <= 0 ||
         layout.padding < 0 ||
+        layout.textSpacing < 0 ||
+        !layout.horizontalCalibration.isFinite ||
+        layout.horizontalCalibration.abs() > layout.padding ||
         layout.padding * 2 >= width ||
         layout.padding * 2 >= height) {
       return const NiimbotPrintException(
         code: NiimbotPrintErrorCode.invalidLabelSize,
-        message: 'Invalid label dimensions or padding',
+        message: 'Invalid label dimensions, padding, or text spacing',
       );
     }
     return null;

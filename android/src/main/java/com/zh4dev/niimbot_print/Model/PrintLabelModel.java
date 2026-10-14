@@ -8,6 +8,7 @@ public class PrintLabelModel {
     double fontSize;
     String fontFamily;
     String fontStyle = "normal";
+    String textAlignment;
     TextSizing sizing;
 
     public static class TextSizing {
@@ -77,6 +78,13 @@ public class PrintLabelModel {
 
     public double getFontSizeOffset() {
         return sizing == null ? 0.0 : sizing.fontSizeOffset;
+    }
+
+    public int getTextAlignment(int fallback) {
+        if ("left".equals(textAlignment)) return 0;
+        if ("right".equals(textAlignment)) return 2;
+        if ("center".equals(textAlignment)) return 1;
+        return fallback;
     }
 
     public String toMap() {

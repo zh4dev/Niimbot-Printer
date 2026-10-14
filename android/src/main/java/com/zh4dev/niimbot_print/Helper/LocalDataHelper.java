@@ -16,6 +16,7 @@ public class LocalDataHelper {
 
     public void setPrinterModel(@NonNull String printerName) {
         SharedPreferences.Editor editor = preferences.edit();
+        editor.putString("connectedPrinterName", printerName);
         PrinterConfigurationModel model;
         if (printerName.matches("^(B32|Z401|B50|T6|T7|T8).*")) {
             model = new PrinterConfigurationModel(
@@ -39,6 +40,10 @@ public class LocalDataHelper {
             return model.fromMap(json);
         }
         return model;
+    }
+
+    public String getPrinterName() {
+        return preferences.getString("connectedPrinterName", "");
     }
 
 }

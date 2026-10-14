@@ -5,5 +5,6 @@
 
 - (void)setPrinterModel:(NSString *)printerName;
 - (PrinterConfigurationModel *)getPrinterModel;
+- (NSString *)getPrinterName;
 
 @end

@@ -34,7 +34,10 @@ class NiimbotLabelLayout {
     this.horizontalAlignment = NiimbotLabelAlignment.center,
     this.verticalAlignment = NiimbotLabelAlignment.center,
     this.padding = 2,
-  }) : assert(padding >= 0);
+    this.textSpacing = 0,
+    this.horizontalCalibration = 0,
+  })  : assert(padding >= 0),
+        assert(textSpacing >= 0);
 
   final NiimbotLabelSize size;
   final NiimbotLabelOrientation orientation;
@@ -42,11 +45,20 @@ class NiimbotLabelLayout {
   final NiimbotLabelAlignment verticalAlignment;
   final double padding;
 
+  /// Space in millimetres between text elements in automatic text flow.
+  final double textSpacing;
+
+  /// Horizontal text-flow calibration in mm, applied after optical centering.
+  /// Negative moves left. Included in previews so calibration is visible.
+  final double horizontalCalibration;
+
   Map<String, dynamic> toJson() => <String, dynamic>{
         ...size.toJson(),
         'orientation': orientation.name,
         'horizontalAlignment': horizontalAlignment.name,
         'verticalAlignment': verticalAlignment.name,
         'padding': padding,
+        'textSpacing': textSpacing,
+        'horizontalCalibration': horizontalCalibration,
       };
 }

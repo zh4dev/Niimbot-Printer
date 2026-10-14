@@ -211,7 +211,8 @@ static BOOL JCIsPrinterConnected(void) {
             drawn = [JCAPI drawLableText:x withY:y withWidth:width withHeight:height
                 withString:model.text withFontFamily:model.fontFamily
                 withFontSize:fontSize / 4.5f withRotate:rotation
-                withTextAlignHorizonral:1 withTextAlignVertical:1 withLineMode:6
+                withTextAlignHorizonral:[model horizontalAlignmentWithFallback:1]
+                withTextAlignVertical:1 withLineMode:6
                 withLetterSpacing:0 withLineSpacing:1 withFontStyle:model.fontStyles];
         } else if ([type isEqualToString:@"qrCode"]) {
             drawn = [JCAPI drawLableQrCode:x withY:y withWidth:width withHeight:height
@@ -246,6 +247,79 @@ static BOOL JCIsPrinterConnected(void) {
 }
 
 - (BOOL)drawTextFlow:(NSArray<PrintLabelModel *> *)models layout:(NSDictionary *)layout {
+    [self drawTextFlowPass:models layout:layout rotation:0 correction:CGPointZero];
+    NSString *json = [JCAPI GenerateLableJson];
+    PrinterConfigurationModel *configuration = [[[LocalDataHelper alloc] init] getPrinterModel];
+    NSError *error = nil;
+    UIImage *preview = [JCAPI generatePrintPreviewImage:json displayMultiple:8.0f
+        printMultiple:configuration.printMultiple printPreviewImageType:1 error:&error];
+    BOOL landscape = [layout[@"orientation"] isEqualToString:@"landscape"];
+    float width = [layout[@"width"] floatValue] > 0 ? [layout[@"width"] floatValue] : JCLabelWidth;
+    float height = [layout[@"height"] floatValue] > 0 ? [layout[@"height"] floatValue] : JCLabelHeight;
+    CGSize canvas = CGSizeMake(landscape ? height : width, landscape ? width : height);
+    CGPoint correction = CGPointZero;
+    CGImageRef image = preview.CGImage;
+    if (image != nil) {
+        size_t w = CGImageGetWidth(image), h = CGImageGetHeight(image);
+        NSMutableData *pixels = [NSMutableData dataWithLength:w * h * 4];
+        CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+        CGContextRef context = CGBitmapContextCreate(pixels.mutableBytes, w, h, 8, w * 4,
+            colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+        CGColorSpaceRelease(colorSpace);
+        if (context != NULL) {
+            // Decode the CGImage into rows in its native pixel order.
+            CGContextDrawImage(context, CGRectMake(0, 0, w, h), image);
+            CGContextRelease(context);
+            const unsigned char *bytes = pixels.bytes;
+            NSInteger minX = w, minY = h, maxX = -1, maxY = -1;
+            for (size_t y = 0; y < h; y++) {
+                for (size_t x = 0; x < w; x++) {
+                    const unsigned char *pixel = bytes + (y * w + x) * 4;
+                    if (pixel[3] < 128 || pixel[0] + pixel[1] + pixel[2] >= 384) continue;
+                    minX = MIN(minX, (NSInteger)x); maxX = MAX(maxX, (NSInteger)x);
+                    minY = MIN(minY, (NSInteger)y); maxY = MAX(maxY, (NSInteger)y);
+                }
+            }
+            if (maxX >= minX) {
+                int fallback = [layout[@"horizontalAlignment"] isEqualToString:@"start"] ? 0
+                    : ([layout[@"horizontalAlignment"] isEqualToString:@"end"] ? 2 : 1);
+                BOOL centered = YES;
+                for (PrintLabelModel *model in models) {
+                    if ([model horizontalAlignmentWithFallback:fallback] != 1) centered = NO;
+                }
+                if (centered) {
+                    float padding = layout[@"padding"] != nil ? MAX([layout[@"padding"] floatValue], 0) : 2;
+                    correction.x = ((double)w - (minX + maxX + 1)) * canvas.width / (2.0 * w);
+                    correction.x = MAX(-padding, MIN(padding, correction.x));
+                }
+                NSString *vertical = layout[@"verticalAlignment"] ?: @"center";
+                if ([vertical isEqualToString:@"center"]) {
+                    correction.y = ((double)h - (minY + maxY + 1)) * canvas.height / (2.0 * h);
+                }
+                NSLog(@"[Niimbot] Measured text centering (mm): x=%f, y=%f", correction.x, correction.y);
+            }
+        }
+    }
+    int fallback = [layout[@"horizontalAlignment"] isEqualToString:@"start"] ? 0
+        : ([layout[@"horizontalAlignment"] isEqualToString:@"end"] ? 2 : 1);
+    BOOL centeredFlow = YES;
+    for (PrintLabelModel *model in models) {
+        if ([model horizontalAlignmentWithFallback:fallback] != 1) centeredFlow = NO;
+    }
+    NSString *name = [JCAPI connectingPrinterName];
+    if (name.length == 0) name = [[[LocalDataHelper alloc] init] getPrinterName];
+    // User-selected -2 mm correction; never apply it to other devices/media.
+    float mediaCorrection = centeredFlow && !landscape && fabsf(width - 50) < 0.01f &&
+        fabsf(height - 30) < 0.01f && [name caseInsensitiveCompare:@"B1-F729063519"] == NSOrderedSame
+        ? -2.0f : 0.0f;
+    float calibration = [layout[@"horizontalCalibration"] floatValue];
+    correction.x += calibration == 0 ? mediaCorrection : calibration;
+    return [self drawTextFlowPass:models layout:layout rotation:(landscape ? 90 : 0)
+                      correction:correction];
+}
+
+- (BOOL)drawTextFlowPass:(NSArray<PrintLabelModel *> *)models layout:(NSDictionary *)layout
+               rotation:(int)rotation correction:(CGPoint)correction {
     float physicalWidth = [layout[@"width"] floatValue] > 0 ? [layout[@"width"] floatValue] : JCLabelWidth;
     float physicalHeight = [layout[@"height"] floatValue] > 0 ? [layout[@"height"] floatValue] : JCLabelHeight;
     BOOL landscape = [layout[@"orientation"] isEqualToString:@"landscape"];
@@ -254,27 +328,48 @@ static BOOL JCIsPrinterConnected(void) {
     float padding = layout[@"padding"] != nil ? MAX([layout[@"padding"] floatValue], 0.0f) : 2.0f;
     float availableWidth = MAX(canvasWidth - padding * 2.0f, 1.0f);
     float availableHeight = MAX(canvasHeight - padding * 2.0f, 1.0f);
+    float wrapWidth = MAX(availableWidth - 2.0f, 1.0f);
+    float textSpacing = layout[@"textSpacing"] != nil
+        ? MAX([layout[@"textSpacing"] floatValue], 0.0f) : 0.0f;
+    float totalSpacing = textSpacing * MAX((NSInteger)models.count - 1, 0);
+    float textAvailableHeight = availableHeight - totalSpacing;
+    if (textAvailableHeight <= 0.0f) {
+        @throw [NSException exceptionWithName:@"InvalidTextSpacing"
+            reason:@"Text spacing exceeds the available label height" userInfo:nil];
+    }
     [JCAPI initDrawingBoard:canvasWidth withHeight:canvasHeight withHorizontalShift:0
-        withVerticalShift:0 rotate:(landscape ? 90 : 0) fontArray:@[JCDefaultFontFile]];
-    float maxBoxHeight = availableHeight / MAX(models.count, 1);
-    float base = [self resolvedSharedAutoFontSize:models widthMm:availableWidth heightMm:maxBoxHeight];
+        withVerticalShift:0 rotate:rotation fontArray:@[JCDefaultFontFile]];
+    float base = [self resolvedSharedAutoFontSize:models
+                                          widthMm:wrapWidth
+                                         heightMm:textAvailableHeight];
     NSMutableArray<NSNumber *> *sizes = [NSMutableArray array];
     NSMutableArray<NSNumber *> *heights = [NSMutableArray array];
-    float contentHeight = 0;
+    NSMutableArray<NSString *> *wrappedTexts = [NSMutableArray array];
+    float contentHeight = totalSpacing;
     for (PrintLabelModel *model in models) {
         float size = [model.sizingMode isEqualToString:@"autoFit"]
             ? base + model.fontSizeOffset : MAX(model.fontSize, 1.0f);
-        NSInteger lines = [self estimatedLineCount:model fontSize:size widthMm:availableWidth];
-        float height = MIN(maxBoxHeight, MAX(size / 4.5f * 1.35f * lines, 2.0f));
+        NSString *wrappedText = [self wrappedTextForModel:model
+                                                 fontSize:size
+                                                  widthMm:wrapWidth];
+        NSInteger lines = [[wrappedText
+            componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]] count];
+        float height = MAX(size / 4.5f * 1.35f * lines, 2.0f);
         [sizes addObject:@(size)];
         [heights addObject:@(height)];
+        [wrappedTexts addObject:wrappedText];
         contentHeight += height;
     }
-    float y = [layout[@"verticalAlignment"] isEqualToString:@"start"]
-        ? padding
-        : ([layout[@"verticalAlignment"] isEqualToString:@"end"]
-            ? canvasHeight - padding - contentHeight
-            : (canvasHeight - contentHeight) / 2.0f);
+    NSString *verticalAlignment = layout[@"verticalAlignment"] ?: @"center";
+    float y;
+    if ([verticalAlignment isEqualToString:@"start"]) {
+        y = padding;
+    } else if ([verticalAlignment isEqualToString:@"end"]) {
+        y = canvasHeight - padding - contentHeight;
+    } else {
+        y = (canvasHeight - contentHeight) / 2.0f;
+    }
+    y += correction.y;
     int horizontalAlignment = [layout[@"horizontalAlignment"] isEqualToString:@"start"]
         ? 0 : ([layout[@"horizontalAlignment"] isEqualToString:@"end"] ? 2 : 1);
     BOOL success = YES;
@@ -282,12 +377,14 @@ static BOOL JCIsPrinterConnected(void) {
         PrintLabelModel *model = models[index];
         float size = sizes[index].floatValue;
         float height = heights[index].floatValue;
-        BOOL drawn = [JCAPI drawLableText:padding withY:y withWidth:availableWidth withHeight:height
-            withString:model.text withFontFamily:model.fontFamily withFontSize:size / 4.5f
-            withRotate:0 withTextAlignHorizonral:horizontalAlignment withTextAlignVertical:1
+        int textAlignment = [model horizontalAlignmentWithFallback:horizontalAlignment];
+        BOOL drawn = [JCAPI drawLableText:padding + correction.x withY:y withWidth:availableWidth withHeight:height
+            withString:wrappedTexts[index] withFontFamily:model.fontFamily withFontSize:size / 4.5f
+            withRotate:0 withTextAlignHorizonral:textAlignment withTextAlignVertical:1
             withLineMode:6 withLetterSpacing:0 withLineSpacing:1 withFontStyle:model.fontStyles];
         success = success && drawn;
         y += height;
+        if (index < models.count - 1) y += textSpacing;
     }
     return success;
 }
@@ -296,7 +393,9 @@ static BOOL JCIsPrinterConnected(void) {
     float candidate = model.maxFontSize;
     while (candidate > model.minFontSize) {
         NSInteger lines = [self estimatedLineCount:model fontSize:candidate widthMm:width];
-        if (lines <= model.maxLines && candidate / 4.5f * 1.35f * lines <= height) return candidate;
+        if (lines <= model.maxLines &&
+            [self wrappedTextFitsWidth:model.text fontSize:candidate widthMm:width] &&
+            candidate / 4.5f * 1.35f * lines <= height) return candidate;
         candidate -= 0.5f;
     }
     return model.minFontSize;
@@ -341,43 +440,102 @@ static BOOL JCIsPrinterConnected(void) {
            baseFontSize:(float)baseFontSize
                 widthMm:(float)widthMm
                heightMm:(float)heightMm {
+    float totalHeight = 0.0f;
     for (PrintLabelModel *model in models) {
-        if (![model.sizingMode isEqualToString:@"autoFit"]) continue;
-        float fontSize = baseFontSize + model.fontSizeOffset;
+        BOOL autoFit = [model.sizingMode isEqualToString:@"autoFit"];
+        float fontSize = autoFit
+            ? baseFontSize + model.fontSizeOffset
+            : MAX(model.fontSize, 1.0f);
         NSInteger lines = [self estimatedLineCount:model
                                           fontSize:fontSize
                                            widthMm:widthMm];
-        float height = fontSize / 4.5f * 1.35f * lines;
-        if (fontSize < model.minFontSize ||
-            fontSize > model.maxFontSize ||
+        if ((autoFit &&
+             (fontSize < model.minFontSize || fontSize > model.maxFontSize)) ||
             lines > MAX(model.maxLines, 1) ||
-            height > heightMm) {
+            ![self wrappedTextFitsWidth:model.text
+                               fontSize:fontSize
+                                widthMm:widthMm]) {
             return NO;
         }
+        totalHeight += MAX(fontSize / 4.5f * 1.35f * lines, 2.0f);
     }
-    return YES;
+    return totalHeight <= heightMm;
 }
 
 - (NSInteger)estimatedLineCount:(PrintLabelModel *)model
                        fontSize:(float)fontSize
                         widthMm:(float)widthMm {
-    NSArray<NSString *> *explicitLines = [model.text
-        componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-    float fontMm = fontSize / 4.5f;
-    NSInteger totalLines = 0;
-    for (NSString *line in explicitLines) {
-        __block double weightedCharacters = 0.0;
-        [line enumerateSubstringsInRange:NSMakeRange(0, line.length)
-                                 options:NSStringEnumerationByComposedCharacterSequences
-                              usingBlock:^(NSString *substring, NSRange substringRange,
-                                           NSRange enclosingRange, BOOL *stop) {
-            unichar character = [substring characterAtIndex:0];
-            weightedCharacters += character > 0x7f ? 1.0 : 0.58;
-        }];
-        float estimatedWidth = weightedCharacters * fontMm;
-        totalLines += MAX(1, (NSInteger)ceil(estimatedWidth / MAX(widthMm, 1.0f)));
+    return [[self wrappedLinesForText:model.text
+                             fontSize:fontSize
+                              widthMm:widthMm] count];
+}
+
+- (NSArray<NSString *> *)wrappedLinesForText:(NSString *)text
+                                    fontSize:(float)fontSize
+                                     widthMm:(float)widthMm {
+    NSString *normalized = [(text ?: @"") stringByReplacingOccurrencesOfString:@"\r\n"
+                                                                      withString:@"\n"];
+    normalized = [normalized stringByReplacingOccurrencesOfString:@"\r" withString:@"\n"];
+    NSArray<NSString *> *paragraphs = [normalized componentsSeparatedByString:@"\n"];
+    NSMutableArray<NSString *> *lines = [NSMutableArray array];
+    NSCharacterSet *whitespace = [NSCharacterSet whitespaceCharacterSet];
+    for (NSString *paragraph in paragraphs) {
+        NSString *trimmed = [paragraph stringByTrimmingCharactersInSet:whitespace];
+        if (trimmed.length == 0) {
+            [lines addObject:@""];
+            continue;
+        }
+        NSMutableArray<NSString *> *words = [NSMutableArray array];
+        for (NSString *word in [trimmed componentsSeparatedByCharactersInSet:whitespace]) {
+            if (word.length > 0) [words addObject:word];
+        }
+        NSString *current = @"";
+        for (NSString *word in words) {
+            NSString *candidate = current.length == 0
+                ? word
+                : [NSString stringWithFormat:@"%@ %@", current, word];
+            if (current.length == 0 ||
+                [self estimatedTextWidth:candidate fontSize:fontSize] <= widthMm) {
+                current = candidate;
+            } else {
+                [lines addObject:current];
+                current = word;
+            }
+        }
+        if (current.length > 0) [lines addObject:current];
     }
-    return totalLines;
+    return lines.count > 0 ? lines : @[@""];
+}
+
+- (NSString *)wrappedTextForModel:(PrintLabelModel *)model
+                         fontSize:(float)fontSize
+                          widthMm:(float)widthMm {
+    return [[self wrappedLinesForText:model.text fontSize:fontSize widthMm:widthMm]
+        componentsJoinedByString:@"\n"];
+}
+
+- (BOOL)wrappedTextFitsWidth:(NSString *)text
+                    fontSize:(float)fontSize
+                     widthMm:(float)widthMm {
+    for (NSString *line in [self wrappedLinesForText:text
+                                           fontSize:fontSize
+                                            widthMm:widthMm]) {
+        if ([self estimatedTextWidth:line fontSize:fontSize] > widthMm) return NO;
+    }
+    return YES;
+}
+
+- (float)estimatedTextWidth:(NSString *)text fontSize:(float)fontSize {
+    float fontMm = fontSize / 4.5f;
+    __block double weightedCharacters = 0.0;
+    [text enumerateSubstringsInRange:NSMakeRange(0, text.length)
+                             options:NSStringEnumerationByComposedCharacterSequences
+                          usingBlock:^(NSString *substring, NSRange substringRange,
+                                       NSRange enclosingRange, BOOL *stop) {
+        unichar character = [substring characterAtIndex:0];
+        weightedCharacters += character > 0x7f ? 1.0 : 0.58;
+    }];
+    return weightedCharacters * fontMm;
 }
 
 - (void)printQrCode:(PrintQrCodeModel *)qrCode result:(FlutterResult)result {

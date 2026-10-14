@@ -15,6 +15,20 @@ All notable changes to `niimbot_print` will be documented here.
 - Added preflight validation for label bounds, QR proportions, common numeric barcode formats, code dimensions, and overlapping automatically positioned codes.
 - Added an interactive example playground for label size, orientation, optional dimensions, alignment, rotation, preview, and printing.
 
+### Fixed
+
+- Apply an automatic -2 mm media-position correction for centered text flow on device B1-F729063519 with 50 x 30 mm portrait media. Other devices, media sizes, and alignments are unaffected; explicit calibration overrides the profile.
+
+- Added horizontal text-flow calibration in millimetres, applied after centering and included in native previews.
+
+- Wrap long text at word boundaries before rendering instead of shrinking it merely because it approaches a label edge.
+- Reserve a small inner wrapping boundary so text moves to the next line before touching the label edge.
+- Added configurable `textSpacing` between automatic-flow text elements.
+- Added per-text `left`, `center`, and `right` alignment with layout fallback.
+- Measure native preview ink bounds for horizontal and vertical text-flow centering instead of applying a guessed font-height correction.
+- Calculate text-frame heights from the actual wrapped line count so the complete text block stays vertically centered.
+- Apply the same text wrapping and centering behavior on Android and iOS.
+
 ## 0.2.1
 
 ### Fixed

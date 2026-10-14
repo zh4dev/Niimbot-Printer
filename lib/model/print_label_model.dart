@@ -1,5 +1,6 @@
 import 'package:niimbot_print/enum/niimbot_font_family.dart';
 import 'package:niimbot_print/enum/niimbot_font_style.dart';
+import 'package:niimbot_print/enum/niimbot_text_alignment.dart';
 import 'package:niimbot_print/model/niimbot_text_sizing.dart';
 import 'package:niimbot_print/model/niimbot_print_element.dart';
 
@@ -13,6 +14,7 @@ class PrintLabelModel extends NiimbotPrintElement {
     NiimbotTextSizing? sizing,
     this.frame,
     this.rotation = NiimbotRotation.degree0,
+    this.alignment,
   }) {
     _text = text;
     _fontSize = fontSize;
@@ -32,6 +34,13 @@ class PrintLabelModel extends NiimbotPrintElement {
     rotation = NiimbotRotation.fromDegrees(
       (json['rotation'] as num?)?.toInt() ?? 0,
     );
+    final alignmentName = json['textAlignment'];
+    if (alignmentName != null) {
+      alignment = NiimbotTextAlignment.values.firstWhere(
+        (value) => value.name == alignmentName,
+        orElse: () => NiimbotTextAlignment.center,
+      );
+    }
     _style = NiimbotFontStyle.values.firstWhere(
       (value) => value.name == json['fontStyle'],
       orElse: () => NiimbotFontStyle.normal,
@@ -55,6 +64,7 @@ class PrintLabelModel extends NiimbotPrintElement {
   NiimbotTextSizing? _sizing;
   NiimbotRect? frame;
   NiimbotRotation rotation = NiimbotRotation.degree0;
+  NiimbotTextAlignment? alignment;
 
   PrintLabelModel copyWith({
     String? text,
@@ -65,6 +75,7 @@ class PrintLabelModel extends NiimbotPrintElement {
     NiimbotTextSizing? sizing,
     NiimbotRect? frame,
     NiimbotRotation? rotation,
+    NiimbotTextAlignment? alignment,
   }) =>
       PrintLabelModel(
         text: text ?? _text,
@@ -75,6 +86,7 @@ class PrintLabelModel extends NiimbotPrintElement {
         sizing: sizing ?? _sizing,
         frame: frame ?? this.frame,
         rotation: rotation ?? this.rotation,
+        alignment: alignment ?? this.alignment,
       );
 
   String? get text => _text;
@@ -104,6 +116,7 @@ class PrintLabelModel extends NiimbotPrintElement {
     map['sizing'] = sizing.toJson();
     if (frame != null) map['frame'] = frame!.toJson();
     map['rotation'] = rotation.degrees;
+    if (alignment != null) map['textAlignment'] = alignment!.name;
     return map;
   }
 }

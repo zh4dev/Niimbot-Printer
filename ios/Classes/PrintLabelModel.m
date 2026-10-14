@@ -9,6 +9,7 @@
         _fontSize = 0.0;
         _fontFamily = @"宋体";
         _fontStyle = @"normal";
+        _textAlignment = nil;
         _sizingMode = @"fixed";
         _minFontSize = 0.0;
         _maxFontSize = 0.0;
@@ -33,7 +34,8 @@
         @"text": self.text,
         @"fontSize": @(self.fontSize),
         @"fontFamily": self.fontFamily ?: @"宋体",
-        @"fontStyle": self.fontStyle ?: @"normal"
+        @"fontStyle": self.fontStyle ?: @"normal",
+        @"textAlignment": self.textAlignment ?: [NSNull null]
     };
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dictionary options:NSJSONWritingPrettyPrinted error:&error];
 
@@ -63,6 +65,10 @@
         model.fontStyle = ([fontStyle isKindOfClass:[NSString class]] && fontStyle.length > 0)
             ? fontStyle
             : @"normal";
+        NSString *textAlignment = dictionary[@"textAlignment"];
+        model.textAlignment = [textAlignment isKindOfClass:[NSString class]]
+            ? textAlignment
+            : nil;
         NSDictionary *sizing = [dictionary[@"sizing"] isKindOfClass:[NSDictionary class]]
             ? dictionary[@"sizing"]
             : nil;
@@ -81,6 +87,13 @@
         }
         return model;
     }
+}
+
+- (int)horizontalAlignmentWithFallback:(int)fallback {
+    if ([self.textAlignment isEqualToString:@"left"]) return 0;
+    if ([self.textAlignment isEqualToString:@"right"]) return 2;
+    if ([self.textAlignment isEqualToString:@"center"]) return 1;
+    return fallback;
 }
 
 - (NSArray<NSNumber *> *)fontStyles {

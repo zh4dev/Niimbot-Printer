@@ -120,27 +120,40 @@ public class PrintUtility {
             float padding = (float) Math.max(layout.padding, 0.0);
             float availableWidth = Math.max(canvasWidth - padding * 2.0F, 1.0F);
             float availableHeight = Math.max(canvasHeight - padding * 2.0F, 1.0F);
+            float wrapWidth = Math.max(availableWidth - 2.0F, 1.0F);
+            float textSpacing = (float) Math.max(layout.textSpacing, 0.0);
+            float totalSpacing = textSpacing * Math.max(models.size() - 1, 0);
+            float textAvailableHeight = availableHeight - totalSpacing;
+            if (textAvailableHeight <= 0.0F) {
+                throw new IllegalArgumentException("Text spacing exceeds the available label height");
+            }
             api.drawEmptyLabel(canvasWidth, canvasHeight, layout.getRotation(), "");
 
-            float maxBoxHeight = availableHeight / Math.max(models.size(), 1);
             float[] fontSizes = new float[models.size()];
             float[] boxHeights = new float[models.size()];
-            float contentHeight = 0.0F;
+            String[] wrappedTexts = new String[models.size()];
+            float contentHeight = totalSpacing;
+            float largestFontHeight = 0.0F;
             float sharedAutoFontSize = resolveSharedAutoFontSize(
                     models,
-                    availableWidth,
-                    maxBoxHeight
+                    wrapWidth,
+                    textAvailableHeight
             );
             for (int i = 0; i < models.size(); i++) {
                 PrintLabelModel model = models.get(i);
                 float fontSize = model.isAutoFit()
                         ? (float) (sharedAutoFontSize + model.getFontSizeOffset())
                         : (float) Math.max(model.getFontSize(), 1.0);
-                int lines = estimatedLineCount(model, fontSize, availableWidth);
-                float height = Math.min(maxBoxHeight, Math.max(fontSize / 4.5F * 1.35F * lines, 2.0F));
+                String wrappedText = wrapTextAtWordBoundaries(
+                        model.getText(), fontSize, wrapWidth
+                );
+                int lines = lineCount(wrappedText);
+                float height = Math.max(fontSize / 4.5F * 1.35F * lines, 2.0F);
                 fontSizes[i] = fontSize;
                 boxHeights[i] = height;
+                wrappedTexts[i] = wrappedText;
                 contentHeight += height;
+                largestFontHeight = Math.max(largestFontHeight, fontSize / 4.5F);
             }
             float currentY;
             if ("start".equals(layout.verticalAlignment)) {
@@ -148,7 +161,11 @@ public class PrintUtility {
             } else if ("end".equals(layout.verticalAlignment)) {
                 currentY = canvasHeight - padding - contentHeight;
             } else {
-                currentY = (canvasHeight - contentHeight) / 2.0F;
+                float opticalCorrection = Math.min(
+                        largestFontHeight * 0.15F,
+                        Math.max((availableHeight - contentHeight) / 2.0F, 0.0F)
+                );
+                currentY = (canvasHeight - contentHeight) / 2.0F + opticalCorrection;
             }
 
             for (int i = 0; i < models.size(); i++) {
@@ -158,11 +175,11 @@ public class PrintUtility {
                         currentY,
                         availableWidth,
                         boxHeights[i],
-                        model.getText(),
+                        wrappedTexts[i],
                         model.getFontFamily(),
                         fontSizes[i] / 4.5F,
                         0,
-                        layout.getHorizontalAlignment(),
+                        model.getTextAlignment(layout.getHorizontalAlignment()),
                         1,
                         6,
                         0,
@@ -170,6 +187,7 @@ public class PrintUtility {
                         model.getFontStyles()
                 );
                 currentY += boxHeights[i];
+                if (i < models.size() - 1) currentY += textSpacing;
             }
             return createPrintData(canvasWidth, canvasHeight, layout.getRotation());
         });
@@ -237,7 +255,7 @@ public class PrintUtility {
                     api.drawLabelText(
                             frame.x, frame.y, frame.width, frame.height,
                             text.getText(), text.getFontFamily(), fontSize / 4.5F,
-                            element.integer("rotation", 0), 1, 1, 6, 0, 1,
+                            element.integer("rotation", 0), text.getTextAlignment(1), 1, 6, 0, 1,
                             text.getFontStyles()
                     );
                     break;
@@ -279,41 +297,118 @@ public class PrintUtility {
     }
 
     private PrintData renderTextFlow(List<PrintLabelModel> models, LabelLayoutModel layout) {
+        // Measure the SDK's actual ink bounds on an unrotated board, not the
+        // nominal text frames. The same correction is used for print and preview.
+        PrintData probe = renderTextFlowPass(models, layout, 0, 0, 0);
+        Bitmap preview = null;
+        try {
+            preview = api.generatePreviewImage(probe.labelJson, probe.printInfoJson);
+        } catch (Exception error) {
+            Log.w(TAG, "Unable to measure text bounds; using frame alignment", error);
+        }
+        float dx = 0.0F;
+        float dy = 0.0F;
+        if (preview != null) {
+            int minX = preview.getWidth(), minY = preview.getHeight();
+            int maxX = -1, maxY = -1;
+            int[] row = new int[preview.getWidth()];
+            for (int y = 0; y < preview.getHeight(); y++) {
+                preview.getPixels(row, 0, row.length, 0, y, row.length, 1);
+                for (int x = 0; x < row.length; x++) {
+                    int pixel = row[x];
+                    if (((pixel >>> 24) & 255) < 128 ||
+                            (((pixel >>> 16) & 255) + ((pixel >>> 8) & 255) +
+                                    (pixel & 255)) >= 384) continue;
+                    minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+                    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+                }
+            }
+            if (maxX >= minX) {
+                boolean centered = true;
+                for (PrintLabelModel model : models) {
+                    if (model.getTextAlignment(layout.getHorizontalAlignment()) != 1) centered = false;
+                }
+                if (centered) {
+                    dx = (preview.getWidth() - (minX + maxX + 1)) *
+                            layout.getCanvasWidth() / (2.0F * preview.getWidth());
+                    float padding = (float) Math.max(layout.padding, 0.0);
+                    dx = Math.max(-padding, Math.min(padding, dx));
+                }
+                if (!"start".equals(layout.verticalAlignment) && !"end".equals(layout.verticalAlignment)) {
+                    dy = (preview.getHeight() - (minY + maxY + 1)) *
+                            layout.getCanvasHeight() / (2.0F * preview.getHeight());
+                }
+                Log.d(TAG, "Measured text centering (mm): x=" + dx + ", y=" + dy);
+            }
+            preview.recycle();
+        }
+        // User-selected -2 mm correction for this device/media pair. Do not
+        // extrapolate a unit-specific media displacement to other printers.
+        boolean centeredFlow = true;
+        for (PrintLabelModel model : models) {
+            if (model.getTextAlignment(layout.getHorizontalAlignment()) != 1) centeredFlow = false;
+        }
+        float mediaCorrection = centeredFlow && layout.getRotation() == 0 &&
+                Math.abs(layout.width - 50) < 0.01 && Math.abs(layout.height - 30) < 0.01 &&
+                "B1-F729063519".equalsIgnoreCase(localDataHelper.getPrinterName()) ? -2.0F : 0.0F;
+        // Explicit calibration overrides the built-in profile rather than adding to it.
+        float calibration = layout.horizontalCalibration == 0 ? mediaCorrection
+                : (float) layout.horizontalCalibration;
+        return renderTextFlowPass(models, layout, layout.getRotation(), dx + calibration, dy);
+    }
+
+    private PrintData renderTextFlowPass(List<PrintLabelModel> models, LabelLayoutModel layout,
+                                         int rotation, float dx, float dy) {
         float canvasWidth = layout.getCanvasWidth();
         float canvasHeight = layout.getCanvasHeight();
         float padding = (float) Math.max(layout.padding, 0.0);
         float availableWidth = Math.max(canvasWidth - padding * 2.0F, 1.0F);
         float availableHeight = Math.max(canvasHeight - padding * 2.0F, 1.0F);
-        api.drawEmptyLabel(canvasWidth, canvasHeight, layout.getRotation(), "");
-        float maxBoxHeight = availableHeight / Math.max(models.size(), 1);
+        float wrapWidth = Math.max(availableWidth - 2.0F, 1.0F);
+        float textSpacing = (float) Math.max(layout.textSpacing, 0.0);
+        float totalSpacing = textSpacing * Math.max(models.size() - 1, 0);
+        float textAvailableHeight = availableHeight - totalSpacing;
+        if (textAvailableHeight <= 0.0F) {
+            throw new IllegalArgumentException("Text spacing exceeds the available label height");
+        }
+        api.drawEmptyLabel(canvasWidth, canvasHeight, rotation, "");
         float[] fontSizes = new float[models.size()];
         float[] boxHeights = new float[models.size()];
-        float contentHeight = 0.0F;
-        float sharedAutoFontSize = resolveSharedAutoFontSize(models, availableWidth, maxBoxHeight);
+        String[] wrappedTexts = new String[models.size()];
+        float contentHeight = totalSpacing;
+        float sharedAutoFontSize = resolveSharedAutoFontSize(
+                models, wrapWidth, textAvailableHeight
+        );
         for (int i = 0; i < models.size(); i++) {
             PrintLabelModel model = models.get(i);
             float fontSize = model.isAutoFit()
                     ? (float) (sharedAutoFontSize + model.getFontSizeOffset())
                     : (float) Math.max(model.getFontSize(), 1.0);
-            int lines = estimatedLineCount(model, fontSize, availableWidth);
-            float height = Math.min(maxBoxHeight, Math.max(fontSize / 4.5F * 1.35F * lines, 2.0F));
+            String wrappedText = wrapTextAtWordBoundaries(
+                    model.getText(), fontSize, wrapWidth
+            );
+            int lines = lineCount(wrappedText);
+            float height = Math.max(fontSize / 4.5F * 1.35F * lines, 2.0F);
             fontSizes[i] = fontSize;
             boxHeights[i] = height;
+            wrappedTexts[i] = wrappedText;
             contentHeight += height;
         }
         float currentY = "start".equals(layout.verticalAlignment)
                 ? padding
                 : ("end".equals(layout.verticalAlignment)
                 ? canvasHeight - padding - contentHeight
-                : (canvasHeight - contentHeight) / 2.0F);
+                : (canvasHeight - contentHeight) / 2.0F) + dy;
         for (int i = 0; i < models.size(); i++) {
             PrintLabelModel model = models.get(i);
-            api.drawLabelText(padding, currentY, availableWidth, boxHeights[i], model.getText(),
+            api.drawLabelText(padding + dx, currentY, availableWidth, boxHeights[i], wrappedTexts[i],
                     model.getFontFamily(), fontSizes[i] / 4.5F, 0,
-                    layout.getHorizontalAlignment(), 1, 6, 0, 1, model.getFontStyles());
+                    model.getTextAlignment(layout.getHorizontalAlignment()),
+                    1, 6, 0, 1, model.getFontStyles());
             currentY += boxHeights[i];
+            if (i < models.size() - 1) currentY += textSpacing;
         }
-        return createPrintData(canvasWidth, canvasHeight, layout.getRotation());
+        return createPrintData(canvasWidth, canvasHeight, rotation);
     }
 
     private float resolveElementFontSize(PrintLabelModel model, float width, float height) {
@@ -368,39 +463,86 @@ public class PrintUtility {
             float widthMm,
             float heightMm
     ) {
+        float totalHeight = 0.0F;
         for (PrintLabelModel model : models) {
-            if (!model.isAutoFit()) continue;
-            float fontSize = (float) (baseFontSize + model.getFontSizeOffset());
-            if (fontSize < model.getMinFontSize() ||
-                    fontSize > model.getMaxFontSize() ||
-                    !textFits(model, fontSize, widthMm, heightMm)) {
+            float fontSize = model.isAutoFit()
+                    ? (float) (baseFontSize + model.getFontSizeOffset())
+                    : (float) Math.max(model.getFontSize(), 1.0);
+            int lines = estimatedLineCount(model, fontSize, widthMm);
+            if ((model.isAutoFit() &&
+                    (fontSize < model.getMinFontSize() ||
+                            fontSize > model.getMaxFontSize())) ||
+                    lines > model.getMaxLines() ||
+                    !wrappedTextFitsWidth(model.getText(), fontSize, widthMm)) {
                 return false;
             }
+            totalHeight += Math.max(fontSize / 4.5F * 1.35F * lines, 2.0F);
         }
-        return true;
+        return totalHeight <= heightMm;
     }
 
     private boolean textFits(PrintLabelModel model, float fontSize, float widthMm, float heightMm) {
         int lines = estimatedLineCount(model, fontSize, widthMm);
         float fontMm = fontSize / 4.5F;
-        return lines <= model.getMaxLines() && fontMm * 1.35F * lines <= heightMm;
+        return lines <= model.getMaxLines() &&
+                wrappedTextFitsWidth(model.getText(), fontSize, widthMm) &&
+                fontMm * 1.35F * lines <= heightMm;
     }
 
     private int estimatedLineCount(PrintLabelModel model, float fontSize, float widthMm) {
-        String[] explicitLines = model.getText().split("\\r?\\n", -1);
-        float fontMm = fontSize / 4.5F;
-        int lineCount = 0;
-        for (String line : explicitLines) {
-            double weightedCharacters = 0.0;
-            for (int offset = 0; offset < line.length();) {
-                int codePoint = line.codePointAt(offset);
-                weightedCharacters += codePoint > 0x7f ? 1.0 : 0.58;
-                offset += Character.charCount(codePoint);
+        return lineCount(wrapTextAtWordBoundaries(model.getText(), fontSize, widthMm));
+    }
+
+    private int lineCount(String text) {
+        return text.split("\\r?\\n", -1).length;
+    }
+
+    private String wrapTextAtWordBoundaries(String text, float fontSize, float widthMm) {
+        String safeText = text == null ? "" : text.trim();
+        String[] paragraphs = safeText.split("\\r?\\n", -1);
+        List<String> lines = new ArrayList<>();
+        for (String paragraph : paragraphs) {
+            String trimmed = paragraph.trim();
+            if (trimmed.isEmpty()) {
+                lines.add("");
+                continue;
             }
-            float estimatedWidth = (float) weightedCharacters * fontMm;
-            lineCount += Math.max(1, (int) Math.ceil(estimatedWidth / Math.max(widthMm, 1.0F)));
+            StringBuilder current = new StringBuilder();
+            for (String word : trimmed.split("\\s+")) {
+                String candidate = current.length() == 0
+                        ? word
+                        : current + " " + word;
+                if (current.length() == 0 || textWidthMm(candidate, fontSize) <= widthMm) {
+                    current.setLength(0);
+                    current.append(candidate);
+                } else {
+                    lines.add(current.toString());
+                    current.setLength(0);
+                    current.append(word);
+                }
+            }
+            if (current.length() > 0) lines.add(current.toString());
         }
-        return lineCount;
+        return String.join("\n", lines);
+    }
+
+    private float textWidthMm(String text, float fontSize) {
+        float fontMm = fontSize / 4.5F;
+        double weightedCharacters = 0.0;
+        for (int offset = 0; offset < text.length();) {
+            int codePoint = text.codePointAt(offset);
+            weightedCharacters += codePoint > 0x7f ? 1.0 : 0.58;
+            offset += Character.charCount(codePoint);
+        }
+        return (float) weightedCharacters * fontMm;
+    }
+
+    private boolean wrappedTextFitsWidth(String text, float fontSize, float widthMm) {
+        String wrapped = wrapTextAtWordBoundaries(text, fontSize, widthMm);
+        for (String line : wrapped.split("\\r?\\n", -1)) {
+            if (textWidthMm(line, fontSize) > widthMm) return false;
+        }
+        return true;
     }
 
     public void printQrCode(

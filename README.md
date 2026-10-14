@@ -167,12 +167,14 @@ await niimbotPrint.onStartPrint(
     horizontalAlignment: NiimbotLabelAlignment.center,
     verticalAlignment: NiimbotLabelAlignment.center,
     padding: 2,
+    textSpacing: 1,
   ),
   elements: [
     PrintLabelModel(
       text: 'Product name',
       font: NiimbotFontFamily.defaultFont,
       style: NiimbotFontStyle.bold,
+      alignment: NiimbotTextAlignment.center,
       sizing: const NiimbotTextSizing.autoFit(
         minFontSize: 10,
         maxFontSize: 36,
@@ -204,7 +206,32 @@ and defaults to `normal`, so existing print requests remain compatible.
 
 Auto-fit items on the same label share one calculated base size. Set
 `fontSizeOffset` to create a hierarchy such as `0`, `-2`, and `-4` while
-keeping every text item within its configured bounds.
+keeping every text item within its configured bounds. Long text is wrapped at
+word boundaries up to `maxLines`; the renderer then centers the complete
+multi-line text block using the layout alignment. Font size is reduced only
+when the wrapped content still cannot fit the available label area. Use
+`textSpacing` to add millimetre-based spacing between automatic-flow text
+elements without changing the spacing between wrapped lines of one element.
+Each `PrintLabelModel` may override the layout alignment with
+`NiimbotTextAlignment.left`, `center`, or `right`. When omitted, text follows
+the label's `horizontalAlignment`. Centered automatic text flow measures the
+native preview's visible ink bounds before the final render, balancing the
+horizontal margins and vertically centering the visible text block. If the
+SDK cannot generate the measurement preview, frame alignment is used.
+Physical media positioning still depends on the printer's calibration and
+the configured label size matching the sticker.
+For automatic text flow, set `horizontalCalibration` in `NiimbotLabelLayout`
+to compensate for media positioning (negative moves left, positive moves right).
+It defaults to zero and must not exceed `padding` in either direction.
+Preview includes this correction intentionally; it is applied after centering
+and does not affect font sizing or wrapping. Calibration follows the logical
+canvas horizontal axis, so check it again when changing orientation or media.
+
+An internal device-specific profile automatically corrects centered text
+on device `B1-F729063519` with 50 x 30 mm portrait media by -2 mm. No manual
+setting is needed for that combination. The profile is device-specific and
+does not claim to detect the physical sticker position on other printers.
+Nonzero explicit calibration overrides the profile to avoid double correction.
 
 ### Print a QR code
 

@@ -6,6 +6,8 @@ public class LabelLayoutModel {
     public double width = 50.0;
     public double height = 30.0;
     public double padding = 2.0;
+    public double textSpacing = 0.0;
+    public double horizontalCalibration = 0.0;
     public String orientation = "portrait";
     public String horizontalAlignment = "center";
     public String verticalAlignment = "center";

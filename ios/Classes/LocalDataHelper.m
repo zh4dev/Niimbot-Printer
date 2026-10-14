@@ -6,6 +6,7 @@
 
 - (void)setPrinterModel:(NSString *)printerName {
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    [userDefaults setObject:printerName forKey:@"connectedPrinterName"];
     PrinterConfigurationModel *model;
 
     if ([printerName rangeOfString:@"^(B32|Z401|B50|T6|T7|T8).*" options:NSRegularExpressionSearch].location != NSNotFound) {
@@ -29,6 +30,10 @@
     }
 
     return model;
+}
+
+- (NSString *)getPrinterName {
+    return [[NSUserDefaults standardUserDefaults] stringForKey:@"connectedPrinterName"] ?: @"";
 }
 
 @end

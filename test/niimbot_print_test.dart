@@ -316,6 +316,8 @@ void main() {
         'horizontalAlignment': 'center',
         'verticalAlignment': 'center',
         'padding': 2.0,
+        'textSpacing': 0.0,
+        'horizontalCalibration': 0.0,
       });
     });
 
@@ -332,12 +334,15 @@ void main() {
         layout: const NiimbotLabelLayout(
           size: NiimbotLabelSize(width: 50, height: 80),
           orientation: NiimbotLabelOrientation.landscape,
+          textSpacing: 1,
+          horizontalCalibration: -1.5,
         ),
         elements: <NiimbotPrintElement>[
           PrintLabelModel(
             text: 'VIP',
             font: NiimbotFontFamily.defaultFont,
             style: NiimbotFontStyle.boldItalic,
+            alignment: NiimbotTextAlignment.right,
             sizing: const NiimbotTextSizing.autoFit(
               maxFontSize: 40,
               fontSizeOffset: -2,
@@ -354,8 +359,13 @@ void main() {
       expect((payload['layout'] as Map<Object?, Object?>)['height'], 80.0);
       expect((payload['layout'] as Map<Object?, Object?>)['orientation'],
           'landscape');
+      expect((payload['layout'] as Map<Object?, Object?>)['textSpacing'], 1.0);
+      expect(
+          (payload['layout'] as Map<Object?, Object?>)['horizontalCalibration'],
+          -1.5);
       expect(item['fontFamily'], '宋体');
       expect(item['fontStyle'], 'boldItalic');
+      expect(item['textAlignment'], 'right');
       expect(item['sizing']['mode'], 'autoFit');
       expect(item['sizing']['maxFontSize'], 40.0);
       expect(item['sizing']['fontSizeOffset'], -2.0);
