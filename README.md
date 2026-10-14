@@ -233,6 +233,50 @@ setting is needed for that combination. The profile is device-specific and
 does not claim to detect the physical sticker position on other printers.
 Nonzero explicit calibration overrides the profile to avoid double correction.
 
+Profiles now come from the same Dart configuration on Android and iOS, instead
+of being hardcoded into either renderer. Disable built-ins with
+`usePrinterProfiles: false`, or replace the list with measured profiles:
+
+```dart
+const layout = NiimbotLabelLayout(
+  printerProfiles: [
+    NiimbotPrinterMediaProfile(
+      printerName: 'MY-PRINTER',
+      size: NiimbotLabelSize.mm50x30,
+      horizontalCorrection: -1,
+    ),
+  ],
+);
+```
+
+Profiles match the exact printer name (case-insensitive), media dimensions,
+orientation, and centered text flow. Corrections exceeding the configured
+padding are ignored. No matching profile means no physical media correction.
+Use `horizontalCalibration` for an explicit nonzero override, or disable
+profiles to request zero correction. Profiles affect automatic text flow only.
+
+Successful ink measurements are cached for identical text, font/style, layout,
+and print resolution. Both platforms keep at most 32 hash/coordinate entries
+in memory; no attendee text, image, or label JSON is retained in this cache.
+Failed/blank probes are retried. Native logs include `cacheHit` and `elapsedMs`
+so cold and warm renders can be compared on the actual device.
+
+Wrapping still uses a conservative character-width estimate; ink centering
+uses the actual SDK preview. The bundled SDK does not expose a public glyph
+measurement API, so exact font-aware wrapping is not claimed. Native geometry
+tests do not replace physical printer tests.
+
+Run the native geometry tests alongside `flutter test`:
+
+```bash
+cd example/android
+./gradlew :niimbot_print:testDebugUnitTest
+```
+
+The Foundation-only Objective-C runner at `ios/Tests/RenderGeometryTests.m`
+can also be compiled on macOS with `InkBounds.m` and `PrinterMediaProfile.m`
+using `clang -fobjc-arc -framework Foundation -Iios/Classes`.
+
 ### Print a QR code
 
 QR and matrix codes can use an explicit `frame`, or let the plugin calculate

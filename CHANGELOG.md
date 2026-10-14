@@ -2,6 +2,15 @@
 
 All notable changes to `niimbot_print` will be documented here.
 
+## Unreleased
+
+- Move device/media policy into shared, configurable `NiimbotPrinterMediaProfile` data; add `usePrinterProfiles` to disable automatic correction.
+- Route legacy Android text printing through the unified renderer.
+- Cache up to 32 successful ink-bound measurements per session using hashed input keys and coordinates only; log render duration and cache hits.
+- Prevent native preview from resetting the drawing board during an active print job.
+- Share layout/profile preflight validation between printing and preview and reject non-finite dimensions.
+- Add native Android and Foundation-only Objective-C tests for ink geometry, profile matching, calibration precedence, and cache behavior.
+
 ## 0.3.1
 
 ### Added

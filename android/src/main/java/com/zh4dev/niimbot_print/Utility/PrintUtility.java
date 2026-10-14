@@ -114,83 +114,7 @@ public class PrintUtility {
             LabelLayoutModel layout,
             @NonNull MethodChannel.Result result
     ) {
-        startPrint(result, () -> {
-            float canvasWidth = layout.getCanvasWidth();
-            float canvasHeight = layout.getCanvasHeight();
-            float padding = (float) Math.max(layout.padding, 0.0);
-            float availableWidth = Math.max(canvasWidth - padding * 2.0F, 1.0F);
-            float availableHeight = Math.max(canvasHeight - padding * 2.0F, 1.0F);
-            float wrapWidth = Math.max(availableWidth - 2.0F, 1.0F);
-            float textSpacing = (float) Math.max(layout.textSpacing, 0.0);
-            float totalSpacing = textSpacing * Math.max(models.size() - 1, 0);
-            float textAvailableHeight = availableHeight - totalSpacing;
-            if (textAvailableHeight <= 0.0F) {
-                throw new IllegalArgumentException("Text spacing exceeds the available label height");
-            }
-            api.drawEmptyLabel(canvasWidth, canvasHeight, layout.getRotation(), "");
-
-            float[] fontSizes = new float[models.size()];
-            float[] boxHeights = new float[models.size()];
-            String[] wrappedTexts = new String[models.size()];
-            float contentHeight = totalSpacing;
-            float largestFontHeight = 0.0F;
-            float sharedAutoFontSize = resolveSharedAutoFontSize(
-                    models,
-                    wrapWidth,
-                    textAvailableHeight
-            );
-            for (int i = 0; i < models.size(); i++) {
-                PrintLabelModel model = models.get(i);
-                float fontSize = model.isAutoFit()
-                        ? (float) (sharedAutoFontSize + model.getFontSizeOffset())
-                        : (float) Math.max(model.getFontSize(), 1.0);
-                String wrappedText = wrapTextAtWordBoundaries(
-                        model.getText(), fontSize, wrapWidth
-                );
-                int lines = lineCount(wrappedText);
-                float height = Math.max(fontSize / 4.5F * 1.35F * lines, 2.0F);
-                fontSizes[i] = fontSize;
-                boxHeights[i] = height;
-                wrappedTexts[i] = wrappedText;
-                contentHeight += height;
-                largestFontHeight = Math.max(largestFontHeight, fontSize / 4.5F);
-            }
-            float currentY;
-            if ("start".equals(layout.verticalAlignment)) {
-                currentY = padding;
-            } else if ("end".equals(layout.verticalAlignment)) {
-                currentY = canvasHeight - padding - contentHeight;
-            } else {
-                float opticalCorrection = Math.min(
-                        largestFontHeight * 0.15F,
-                        Math.max((availableHeight - contentHeight) / 2.0F, 0.0F)
-                );
-                currentY = (canvasHeight - contentHeight) / 2.0F + opticalCorrection;
-            }
-
-            for (int i = 0; i < models.size(); i++) {
-                PrintLabelModel model = models.get(i);
-                api.drawLabelText(
-                        padding,
-                        currentY,
-                        availableWidth,
-                        boxHeights[i],
-                        wrappedTexts[i],
-                        model.getFontFamily(),
-                        fontSizes[i] / 4.5F,
-                        0,
-                        model.getTextAlignment(layout.getHorizontalAlignment()),
-                        1,
-                        6,
-                        0,
-                        1,
-                        model.getFontStyles()
-                );
-                currentY += boxHeights[i];
-                if (i < models.size() - 1) currentY += textSpacing;
-            }
-            return createPrintData(canvasWidth, canvasHeight, layout.getRotation());
-        });
+        startPrint(result, () -> renderTextFlow(models, layout));
     }
 
     public void printElements(
@@ -206,6 +130,10 @@ public class PrintUtility {
             LabelLayoutModel layout,
             @NonNull MethodChannel.Result result
     ) {
+        if (PRINT_IN_PROGRESS.get()) {
+            result.error(KeyConstant.errorPrint, "Another print job is in progress", null);
+            return;
+        }
         try {
             ensureApi();
             PrintData data = renderElements(values, layout);
@@ -296,65 +224,47 @@ public class PrintUtility {
         return createPrintData(canvasWidth, canvasHeight, layout.getRotation());
     }
 
+    private static final RenderCorrectionCache CORRECTIONS = new RenderCorrectionCache(32);
+
     private PrintData renderTextFlow(List<PrintLabelModel> models, LabelLayoutModel layout) {
-        // Measure the SDK's actual ink bounds on an unrotated board, not the
-        // nominal text frames. The same correction is used for print and preview.
-        PrintData probe = renderTextFlowPass(models, layout, 0, 0, 0);
-        Bitmap preview = null;
-        try {
-            preview = api.generatePreviewImage(probe.labelJson, probe.printInfoJson);
-        } catch (Exception error) {
-            Log.w(TAG, "Unable to measure text bounds; using frame alignment", error);
-        }
-        float dx = 0.0F;
-        float dy = 0.0F;
-        if (preview != null) {
-            int minX = preview.getWidth(), minY = preview.getHeight();
-            int maxX = -1, maxY = -1;
-            int[] row = new int[preview.getWidth()];
-            for (int y = 0; y < preview.getHeight(); y++) {
-                preview.getPixels(row, 0, row.length, 0, y, row.length, 1);
-                for (int x = 0; x < row.length; x++) {
-                    int pixel = row[x];
-                    if (((pixel >>> 24) & 255) < 128 ||
-                            (((pixel >>> 16) & 255) + ((pixel >>> 8) & 255) +
-                                    (pixel & 255)) >= 384) continue;
-                    minX = Math.min(minX, x); maxX = Math.max(maxX, x);
-                    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
-                }
-            }
-            if (maxX >= minX) {
-                boolean centered = true;
-                for (PrintLabelModel model : models) {
-                    if (model.getTextAlignment(layout.getHorizontalAlignment()) != 1) centered = false;
-                }
-                if (centered) {
-                    dx = (preview.getWidth() - (minX + maxX + 1)) *
-                            layout.getCanvasWidth() / (2.0F * preview.getWidth());
-                    float padding = (float) Math.max(layout.padding, 0.0);
-                    dx = Math.max(-padding, Math.min(padding, dx));
-                }
-                if (!"start".equals(layout.verticalAlignment) && !"end".equals(layout.verticalAlignment)) {
-                    dy = (preview.getHeight() - (minY + maxY + 1)) *
-                            layout.getCanvasHeight() / (2.0F * preview.getHeight());
-                }
-                Log.d(TAG, "Measured text centering (mm): x=" + dx + ", y=" + dy);
-            }
-            preview.recycle();
-        }
-        // User-selected -2 mm correction for this device/media pair. Do not
-        // extrapolate a unit-specific media displacement to other printers.
+        long started = System.nanoTime();
+        String key = RenderCorrectionCache.key(new com.google.gson.Gson().toJson(models) +
+                new com.google.gson.Gson().toJson(layout) + localDataHelper.getPrinterModel().printMultiple);
         boolean centeredFlow = true;
         for (PrintLabelModel model : models) {
             if (model.getTextAlignment(layout.getHorizontalAlignment()) != 1) centeredFlow = false;
         }
-        float mediaCorrection = centeredFlow && layout.getRotation() == 0 &&
-                Math.abs(layout.width - 50) < 0.01 && Math.abs(layout.height - 30) < 0.01 &&
-                "B1-F729063519".equalsIgnoreCase(localDataHelper.getPrinterName()) ? -2.0F : 0.0F;
-        // Explicit calibration overrides the built-in profile rather than adding to it.
-        float calibration = layout.horizontalCalibration == 0 ? mediaCorrection
-                : (float) layout.horizontalCalibration;
-        return renderTextFlowPass(models, layout, layout.getRotation(), dx + calibration, dy);
+        float[] correction = CORRECTIONS.get(key);
+        boolean cacheHit = correction != null;
+        float dx = cacheHit ? correction[0] : 0;
+        float dy = cacheHit ? correction[1] : 0;
+        if (!cacheHit) {
+            PrintData probe = renderTextFlowPass(models, layout, 0, 0, 0);
+            Bitmap preview = null;
+            try {
+                preview = api.generatePreviewImage(probe.labelJson, probe.printInfoJson);
+                if (preview != null) {
+                    InkBounds bounds = new InkBounds(preview.getWidth(), preview.getHeight());
+                    int[] row = new int[preview.getWidth()];
+                    for (int y = 0; y < preview.getHeight(); y++) {
+                        preview.getPixels(row, 0, row.length, 0, y, row.length, 1);
+                        for (int x = 0; x < row.length; x++) bounds.add(x, y, row[x]);
+                    }
+                    if (centeredFlow) dx = bounds.centerX(layout.getCanvasWidth(), (float) layout.padding);
+                    if ("center".equals(layout.verticalAlignment)) dy = bounds.centerY(layout.getCanvasHeight());
+                    if (bounds.hasInk()) CORRECTIONS.put(key, dx, dy);
+                }
+            } catch (Exception error) {
+                Log.w(TAG, "Unable to measure text bounds; using frame alignment", error);
+            } finally {
+                if (preview != null) preview.recycle();
+            }
+        }
+        float calibration = layout.resolveHorizontalCalibration(localDataHelper.getPrinterName(), centeredFlow);
+        PrintData data = renderTextFlowPass(models, layout, layout.getRotation(), dx + calibration, dy);
+        Log.d(TAG, "Text render cacheHit=" + cacheHit + ", elapsedMs=" +
+                (System.nanoTime() - started) / 1000000.0);
+        return data;
     }
 
     private PrintData renderTextFlowPass(List<PrintLabelModel> models, LabelLayoutModel layout,

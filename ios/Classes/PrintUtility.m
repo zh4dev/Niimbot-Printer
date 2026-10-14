@@ -4,6 +4,9 @@
 #import "JCAPI.h"
 #import "PrinterConfigurationModel.h"
 #import "LocalDataHelper.h"
+#import "PrinterMediaProfile.h"
+#import "InkBounds.h"
+#import <CommonCrypto/CommonDigest.h>
 #import "KeyConstant.h"
 #import <math.h>
 #import <float.h>
@@ -99,6 +102,12 @@ static BOOL JCIsPrinterConnected(void) {
 - (void)generatePreview:(NSArray<NSDictionary *> *)elements
                   layout:(NSDictionary *)layout
                   result:(FlutterResult)result {
+    @synchronized ([JCAPI class]) {
+        if (JCPrintInProgress) {
+            result([FlutterError errorWithCode:errorPrint message:@"Another print job is in progress" details:nil]);
+            return;
+        }
+    }
     NSString *resourcePath = [NSBundle mainBundle].resourcePath;
     NSError *fontError = nil;
     [JCAPI initImageProcessing:resourcePath error:&fontError];
@@ -247,75 +256,73 @@ static BOOL JCIsPrinterConnected(void) {
 }
 
 - (BOOL)drawTextFlow:(NSArray<PrintLabelModel *> *)models layout:(NSDictionary *)layout {
-    [self drawTextFlowPass:models layout:layout rotation:0 correction:CGPointZero];
-    NSString *json = [JCAPI GenerateLableJson];
+    NSTimeInterval started = [NSDate timeIntervalSinceReferenceDate];
+    static NSCache<NSString *, NSValue *> *cache;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ cache = [[NSCache alloc] init]; cache.countLimit = 32; });
     PrinterConfigurationModel *configuration = [[[LocalDataHelper alloc] init] getPrinterModel];
-    NSError *error = nil;
-    UIImage *preview = [JCAPI generatePrintPreviewImage:json displayMultiple:8.0f
-        printMultiple:configuration.printMultiple printPreviewImageType:1 error:&error];
+    NSMutableArray *textPayload = [NSMutableArray array];
+    for (PrintLabelModel *model in models) {
+        [textPayload addObject:[NSJSONSerialization JSONObjectWithData:
+            [[model toJson] dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil] ?: @{}];
+    }
+    NSData *payload = [NSJSONSerialization dataWithJSONObject:
+        @{@"texts": textPayload, @"layout": layout, @"printMultiple": @(configuration.printMultiple)}
+        options:NSJSONWritingSortedKeys error:nil];
+    unsigned char digest[CC_SHA256_DIGEST_LENGTH];
+    CC_SHA256(payload.bytes, (CC_LONG)payload.length, digest);
+    NSMutableString *key = [NSMutableString string];
+    for (NSUInteger i = 0; i < sizeof(digest); i++) [key appendFormat:@"%02x", digest[i]];
     BOOL landscape = [layout[@"orientation"] isEqualToString:@"landscape"];
     float width = [layout[@"width"] floatValue] > 0 ? [layout[@"width"] floatValue] : JCLabelWidth;
     float height = [layout[@"height"] floatValue] > 0 ? [layout[@"height"] floatValue] : JCLabelHeight;
     CGSize canvas = CGSizeMake(landscape ? height : width, landscape ? width : height);
-    CGPoint correction = CGPointZero;
-    CGImageRef image = preview.CGImage;
-    if (image != nil) {
-        size_t w = CGImageGetWidth(image), h = CGImageGetHeight(image);
-        NSMutableData *pixels = [NSMutableData dataWithLength:w * h * 4];
-        CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-        CGContextRef context = CGBitmapContextCreate(pixels.mutableBytes, w, h, 8, w * 4,
-            colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
-        CGColorSpaceRelease(colorSpace);
-        if (context != NULL) {
-            // Decode the CGImage into rows in its native pixel order.
-            CGContextDrawImage(context, CGRectMake(0, 0, w, h), image);
-            CGContextRelease(context);
-            const unsigned char *bytes = pixels.bytes;
-            NSInteger minX = w, minY = h, maxX = -1, maxY = -1;
-            for (size_t y = 0; y < h; y++) {
-                for (size_t x = 0; x < w; x++) {
-                    const unsigned char *pixel = bytes + (y * w + x) * 4;
-                    if (pixel[3] < 128 || pixel[0] + pixel[1] + pixel[2] >= 384) continue;
-                    minX = MIN(minX, (NSInteger)x); maxX = MAX(maxX, (NSInteger)x);
-                    minY = MIN(minY, (NSInteger)y); maxY = MAX(maxY, (NSInteger)y);
-                }
-            }
-            if (maxX >= minX) {
-                int fallback = [layout[@"horizontalAlignment"] isEqualToString:@"start"] ? 0
-                    : ([layout[@"horizontalAlignment"] isEqualToString:@"end"] ? 2 : 1);
-                BOOL centered = YES;
-                for (PrintLabelModel *model in models) {
-                    if ([model horizontalAlignmentWithFallback:fallback] != 1) centered = NO;
-                }
-                if (centered) {
-                    float padding = layout[@"padding"] != nil ? MAX([layout[@"padding"] floatValue], 0) : 2;
-                    correction.x = ((double)w - (minX + maxX + 1)) * canvas.width / (2.0 * w);
-                    correction.x = MAX(-padding, MIN(padding, correction.x));
-                }
-                NSString *vertical = layout[@"verticalAlignment"] ?: @"center";
-                if ([vertical isEqualToString:@"center"]) {
-                    correction.y = ((double)h - (minY + maxY + 1)) * canvas.height / (2.0 * h);
-                }
-                NSLog(@"[Niimbot] Measured text centering (mm): x=%f, y=%f", correction.x, correction.y);
-            }
-        }
-    }
+    float padding = layout[@"padding"] != nil ? [layout[@"padding"] floatValue] : 2;
     int fallback = [layout[@"horizontalAlignment"] isEqualToString:@"start"] ? 0
         : ([layout[@"horizontalAlignment"] isEqualToString:@"end"] ? 2 : 1);
     BOOL centeredFlow = YES;
     for (PrintLabelModel *model in models) {
         if ([model horizontalAlignmentWithFallback:fallback] != 1) centeredFlow = NO;
     }
+    NSValue *cached = [cache objectForKey:key];
+    CGPoint correction = cached != nil ? cached.CGPointValue : CGPointZero;
+    if (cached == nil) {
+        [self drawTextFlowPass:models layout:layout rotation:0 correction:CGPointZero];
+        @try {
+            NSString *json = [JCAPI GenerateLableJson];
+            NSError *error = nil;
+            UIImage *preview = [JCAPI generatePrintPreviewImage:json displayMultiple:8.0f
+                printMultiple:configuration.printMultiple printPreviewImageType:1 error:&error];
+            CGImageRef image = preview.CGImage;
+            if (image != nil) {
+                size_t w = CGImageGetWidth(image), h = CGImageGetHeight(image);
+                NSMutableData *pixels = [NSMutableData dataWithLength:w * h * 4];
+                CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+                CGContextRef context = CGBitmapContextCreate(pixels.mutableBytes, w, h, 8, w * 4,
+                    colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+                CGColorSpaceRelease(colorSpace);
+                if (context != NULL) {
+                    CGContextDrawImage(context, CGRectMake(0, 0, w, h), image);
+                    CGContextRelease(context);
+                    JCInkCorrection measured = JCMeasureInkBounds(pixels.bytes, w, h,
+                        canvas.width, canvas.height, padding, centeredFlow,
+                        [layout[@"verticalAlignment"] ?: @"center" isEqualToString:@"center"]);
+                    correction = CGPointMake(measured.x, measured.y);
+                    if (measured.hasInk) [cache setObject:[NSValue valueWithCGPoint:correction] forKey:key];
+                }
+            }
+        } @catch (NSException *exception) {
+            NSLog(@"[Niimbot] Unable to measure ink bounds: %@", exception.reason);
+        }
+    }
     NSString *name = [JCAPI connectingPrinterName];
     if (name.length == 0) name = [[[LocalDataHelper alloc] init] getPrinterName];
-    // User-selected -2 mm correction; never apply it to other devices/media.
-    float mediaCorrection = centeredFlow && !landscape && fabsf(width - 50) < 0.01f &&
-        fabsf(height - 30) < 0.01f && [name caseInsensitiveCompare:@"B1-F729063519"] == NSOrderedSame
-        ? -2.0f : 0.0f;
-    float calibration = [layout[@"horizontalCalibration"] floatValue];
-    correction.x += calibration == 0 ? mediaCorrection : calibration;
-    return [self drawTextFlowPass:models layout:layout rotation:(landscape ? 90 : 0)
-                      correction:correction];
+    correction.x += JCResolveHorizontalCalibration(layout, name, centeredFlow);
+    BOOL drawn = [self drawTextFlowPass:models layout:layout rotation:(landscape ? 90 : 0)
+                            correction:correction];
+    NSLog(@"[Niimbot] Text render cacheHit=%@, elapsedMs=%.2f",
+          cached != nil ? @"YES" : @"NO", ([NSDate timeIntervalSinceReferenceDate] - started) * 1000);
+    return drawn;
 }
 
 - (BOOL)drawTextFlowPass:(NSArray<PrintLabelModel *> *)models layout:(NSDictionary *)layout

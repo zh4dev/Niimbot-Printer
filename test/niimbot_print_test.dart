@@ -112,6 +112,54 @@ void main() {
           <String?>['B1-one', 'B1-two']);
     });
 
+    test('profiles can be replaced or disabled without changing print geometry',
+        () async {
+      const profile = NiimbotPrinterMediaProfile(
+          printerName: 'MY-PRINTER',
+          size: NiimbotLabelSize.mm50x80,
+          horizontalCorrection: -1);
+      const layout = NiimbotLabelLayout(
+          size: NiimbotLabelSize.mm50x80,
+          printerProfiles: [profile],
+          usePrinterProfiles: false);
+      await printer.onStartPrint(
+          elements: [PrintLabelModel(text: 'Test')],
+          layout: layout,
+          onResult: (_, _) {});
+      expect(platform.receivedLayout?.toJson()['usePrinterProfiles'], false);
+      expect(platform.receivedLayout?.toJson()['printerProfiles'],
+          [profile.toJson()]);
+    });
+
+    test('print and preview reject malformed profiles before native rendering',
+        () async {
+      const layout = NiimbotLabelLayout(printerProfiles: [
+        NiimbotPrinterMediaProfile(
+            printerName: '',
+            size: NiimbotLabelSize.mm50x30,
+            horizontalCorrection: -1),
+      ]);
+      bool? success;
+      await printer.onStartPrint(
+          elements: [PrintLabelModel(text: 'Test')],
+          layout: layout,
+          onResult: (value, _) => success = value);
+      expect(success, false);
+      expect(platform.receivedElements, isNull);
+      expect(
+          () => printer.generatePreview(
+              elements: [PrintLabelModel(text: 'Test')], layout: layout),
+          throwsA(isA<NiimbotPrintException>()));
+    });
+
+    test('small padding remains valid with default profiles', () async {
+      await printer.onStartPrint(
+          elements: [PrintLabelModel(text: 'Test')],
+          layout: const NiimbotLabelLayout(padding: 0),
+          onResult: (_, _) {});
+      expect(platform.receivedElements, isNotNull);
+    });
+
     test('QR code is forwarded through the unified print API', () async {
       bool? succeeded;
       await printer.onStartPrint(
@@ -318,6 +366,10 @@ void main() {
         'padding': 2.0,
         'textSpacing': 0.0,
         'horizontalCalibration': 0.0,
+        'usePrinterProfiles': true,
+        'printerProfiles': NiimbotPrinterMediaProfile.builtInProfiles
+            .map((profile) => profile.toJson())
+            .toList(),
       });
     });
 

@@ -118,30 +118,8 @@ class NiimbotPrint {
       NiimbotLabelLayout layout = const NiimbotLabelLayout(),
       NiimbotPrintErrorCallback? onError,
       required NiimbotResultCallback onResult}) async {
-    final logicalWidth = layout.orientation == NiimbotLabelOrientation.landscape
-        ? layout.size.height
-        : layout.size.width;
-    final logicalHeight =
-        layout.orientation == NiimbotLabelOrientation.landscape
-            ? layout.size.width
-            : layout.size.height;
-    if (layout.size.width <= 0 ||
-        layout.size.height <= 0 ||
-        layout.padding < 0 ||
-        layout.textSpacing < 0 ||
-        !layout.horizontalCalibration.isFinite ||
-        layout.horizontalCalibration.abs() > layout.padding ||
-        layout.padding * 2 >= logicalWidth ||
-        layout.padding * 2 >= logicalHeight) {
-      final error = NiimbotPrintException(
-        code: NiimbotPrintErrorCode.invalidLabelSize,
-        message: 'Invalid label dimensions, padding, or text spacing',
-      );
-      onError?.call(error);
-      onResult(false, error.message);
-      return;
-    }
-    final validationError = _validateElements(elements, layout);
+    final validationError =
+        _validateLayout(layout) ?? _validateElements(elements, layout);
     if (validationError != null) {
       onError?.call(validationError);
       onResult(false, validationError.message);
@@ -197,6 +175,10 @@ class NiimbotPrint {
         ? layout.size.width
         : layout.size.height;
     if (layout.size.width <= 0 ||
+        !layout.size.width.isFinite ||
+        !layout.size.height.isFinite ||
+        !layout.padding.isFinite ||
+        !layout.textSpacing.isFinite ||
         layout.size.height <= 0 ||
         layout.padding < 0 ||
         layout.textSpacing < 0 ||
@@ -208,6 +190,18 @@ class NiimbotPrint {
         code: NiimbotPrintErrorCode.invalidLabelSize,
         message: 'Invalid label dimensions, padding, or text spacing',
       );
+    }
+    for (final profile in layout.printerProfiles) {
+      if (profile.printerName.trim().isEmpty ||
+          !profile.size.width.isFinite ||
+          !profile.size.height.isFinite ||
+          profile.size.width <= 0 ||
+          profile.size.height <= 0 ||
+          !profile.horizontalCorrection.isFinite) {
+        return const NiimbotPrintException(
+            code: NiimbotPrintErrorCode.invalidLabelSize,
+            message: 'Invalid printer media profile');
+      }
     }
     return null;
   }

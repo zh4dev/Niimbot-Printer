@@ -36,6 +36,11 @@
         @"fontFamily": self.fontFamily ?: @"宋体",
         @"fontStyle": self.fontStyle ?: @"normal",
         @"textAlignment": self.textAlignment ?: [NSNull null]
+        , @"sizing": @{
+            @"mode": self.sizingMode ?: @"fixed",
+            @"minFontSize": @(self.minFontSize), @"maxFontSize": @(self.maxFontSize),
+            @"maxLines": @(self.maxLines), @"fontSizeOffset": @(self.fontSizeOffset)
+        }
     };
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dictionary options:NSJSONWritingPrettyPrinted error:&error];
 
